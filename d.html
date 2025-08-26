@@ -839,37 +839,19 @@
 
         confirmUserDeleteBtn.addEventListener('click', () => {
             const { userId, userName } = selectedUserInfo;
-            if (!userId) {
-                alert('No user selected.');
-                return;
+            if (userId) {
+                const userRef = ref(db, `user/${userId}`);
+                remove(userRef)
+                    .then(() => {
+                        alert(`User '${userName}' has been permanently deleted.`);
+                        closeModal(deleteUserModal);
+                        resetDashboardView(); // UI को रीसेट करें
+                    })
+                    .catch(error => {
+                        alert('Error deleting user: ' + error.message);
+                        closeModal(deleteUserModal);
+                    });
             }
-
-            const deleteBtnText = confirmUserDeleteBtn.textContent;
-            confirmUserDeleteBtn.textContent = 'Deleting...';
-            confirmUserDeleteBtn.disabled = true;
-
-            // Call the new Firebase Cloud Function to handle the deletion
-           fetch(`https://us-central1-home-demo12-d5814.cloudfunctions.net/deleteUserAndData?userId=${userId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        return response.text().then(text => { throw new Error(text); });
-                    }
-                    return response.text();
-                })
-                .then(message => {
-                    alert(`User '${userName}' has been permanently deleted. Message: ${message}`);
-                    closeModal(deleteUserModal);
-                    resetDashboardView(); // Reset the UI after successful deletion
-                })
-                .catch(error => {
-                    console.error("Error deleting user:", error);
-                    alert(`Error deleting user: ${error.message}`);
-                    closeModal(deleteUserModal);
-                })
-                .finally(() => {
-                    confirmUserDeleteBtn.textContent = deleteBtnText;
-                    confirmUserDeleteBtn.disabled = false;
-                });
         });
         // ===== END: CODE CHANGE / कोड में बदलाव यहाँ समाप्त =====
 
@@ -1263,7 +1245,7 @@
                 const photosWithData = Object.values(photos).reverse();
 
                 if (photosWithData.length === 0) {
-                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No valid photo URLs found. (Perhaps they were deleted from storage.)</p>';
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No valid photo URLs found.</p>';
                     return;
                 }
 
