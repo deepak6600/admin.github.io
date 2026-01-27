@@ -36,6 +36,17 @@ const deletedLogsBtn = document.getElementById('deleted-logs-btn');
 const deletedLogsModal = document.getElementById('deleted-logs-modal');
 const deletedLogsTableBody = document.getElementById('deleted-logs-table-body');
 
+// Ghost Accounts Elements
+const ghostAccountsBtn = document.getElementById('ghost-accounts-btn');
+const ghostAccountsModal = document.getElementById('ghost-accounts-modal');
+const ghostAccountsTableBody = document.getElementById('ghost-accounts-table-body');
+const deleteAllGhostsBtn = document.getElementById('delete-all-ghosts-btn');
+const ghostCountLabel = document.getElementById('ghost-count-label');
+const downloadGhostsPdfBtn = document.getElementById('download-ghosts-pdf-btn');
+
+// Store ghost accounts data for PDF download
+let currentGhostAccounts = [];
+
 // Limits Elements
 const limitsContainer = document.getElementById('limits-settings-container');
 const limitVideoInput = document.getElementById('limit-video');
@@ -62,6 +73,10 @@ let appVisibilityRef = null;
 let appVisibilityListener = null;
 let notificationTarget = {};
 let currentDownloadableData = [];
+
+// Chat Badge Variables
+let chatUnreadListener = null;
+let lastReadMessageCount = 0;
 
 // ==========================================
 // PART 2: HELPER FUNCTIONS (MODAL & DATA)
@@ -308,6 +323,20 @@ function formatTimestamp(ts) {
     return `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
 }
 
+// Helper function to create expiry alert container (for 3-day expiry logic)
+function createExpiryAlertContainer() {
+    const container = document.createElement('div');
+    container.id = 'expiry-alert-container';
+    container.className = 'expiry-alert-container';
+    
+    // Insert at the top of details-view
+    const detailsView = document.getElementById('details-view');
+    if (detailsView) {
+        detailsView.insertBefore(container, detailsView.firstChild);
+    }
+    return container;
+}
+
 // ==========================================
 // PART 2.5: NOTIFICATION LOGIC
 // ==========================================
@@ -511,6 +540,83 @@ function loadLimits(userId, childKey) {
     onValue(limitsRef, window.currentLimitsCallback);
 }
 
+// ==========================================
+// CHAT UNREAD BADGE LISTENER
+// ==========================================
+
+// Get last read timestamp from localStorage
+function getLastReadTimestamp(userId, childKey) {
+    const key = `chat_read_${userId}_${childKey}`;
+    return parseInt(localStorage.getItem(key)) || 0;
+}
+
+// Mark chat as read (save current timestamp)
+function markChatAsRead(userId, childKey) {
+    const key = `chat_read_${userId}_${childKey}`;
+    localStorage.setItem(key, Date.now().toString());
+    
+    // Update badge immediately
+    const chatBadge = document.getElementById('chat-unread-badge');
+    const chatBtn = document.getElementById('chat-category-btn');
+    if (chatBadge) chatBadge.style.display = 'none';
+    if (chatBtn) chatBtn.classList.remove('has-unread');
+}
+
+function setupChatUnreadListener(userId, childKey) {
+    // Remove previous listener
+    if (window.currentChatRef && window.currentChatCallback) {
+        off(window.currentChatRef, 'value', window.currentChatCallback);
+    }
+    
+    const chatBadge = document.getElementById('chat-unread-badge');
+    const chatBtn = document.getElementById('chat-category-btn');
+    
+    if (!chatBadge || !chatBtn) return;
+    
+    // Hide badge initially
+    chatBadge.style.display = 'none';
+    chatBtn.classList.remove('has-unread');
+    
+    if (!userId || !childKey || childKey === 'all') {
+        return;
+    }
+    
+    const chatPath = `user/${userId}/${childKey}/chat`;
+    const chatRef = ref(db, chatPath);
+    
+    window.currentChatRef = chatRef;
+    window.currentChatCallback = (snapshot) => {
+        if (!snapshot.exists()) {
+            chatBadge.style.display = 'none';
+            chatBtn.classList.remove('has-unread');
+            return;
+        }
+        
+        const messages = snapshot.val();
+        const lastReadTime = getLastReadTimestamp(userId, childKey);
+        
+        // Count only 'user' messages that came AFTER last read time
+        const unreadMessages = Object.values(messages).filter(msg => {
+            if (msg.sender !== 'user') return false;
+            const msgTime = msg.timestamp || 0;
+            return msgTime > lastReadTime;
+        });
+        
+        const unreadCount = unreadMessages.length;
+        
+        if (unreadCount > 0) {
+            chatBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            chatBadge.style.display = 'flex';
+            chatBtn.classList.add('has-unread');
+        } else {
+            chatBadge.style.display = 'none';
+            chatBtn.classList.remove('has-unread');
+        }
+    };
+    
+    onValue(chatRef, window.currentChatCallback);
+}
+
 
 // ==========================================
 // PART 3: AUTH & USER HANDLING
@@ -548,6 +654,7 @@ function loadUsers() {
         if (!data) return;
 
         const users = {};
+
         Object.keys(data).forEach(uid => {
             if (data[uid]) {
                 users[uid] = {
@@ -555,21 +662,29 @@ function loadUsers() {
                     children: {},
                     online: false
                 };
-                Object.keys(data[uid]).forEach(childKey => {
-                    // Filter out metadata keys so they don't count as devices
-                    if (['email', 'online', 'uid', 'timestamp', 'last_seen'].includes(childKey)) {
-                         // Attempt to extract email/online even if they are at root
-                         if (childKey === 'email') users[uid].email = data[uid][childKey];
-                         if (childKey === 'online') users[uid].online = data[uid][childKey];
-                         return; 
+
+                const userData = data[uid];
+
+                Object.keys(userData).forEach(childKey => {
+                    const childData = userData[childKey];
+
+                    // Skip profile node (we'll fetch it on-demand in displayUserDetails)
+                    if (childKey === 'profile') {
+                        return;
                     }
 
-                    const childData = data[uid][childKey];
-                    // Ensure childData is an object (a valid device node)
+                    // Filter out metadata keys so they don't count as devices
+                    if (['email', 'online', 'uid', 'timestamp', 'last_seen', 'emailVerified', 'gmail_verified'].includes(childKey)) {
+                        if (childKey === 'email') users[uid].email = userData[childKey];
+                        if (childKey === 'online') users[uid].online = userData[childKey];
+                        return;
+                    }
+
+                    // Remaining objects are device folders
                     if (typeof childData === 'object' && childData !== null) {
                         users[uid].children[childKey] = childData;
-                        
-                        // Also check inside child for email (legacy structure support)
+
+                        // Check inside child for email (legacy structure support)
                         if (childData.email) {
                             users[uid].email = childData.email;
                         }
@@ -590,6 +705,7 @@ function loadUsers() {
             li.className = 'user-list-item';
             if (selectedUserInfo.userId === uid) li.classList.add('active');
 
+            // Sidebar: Show only online status indicator (gray/neutral for verification - fetched on-demand)
             li.innerHTML = `<span class="verification-status ${u.online ? 'verified' : 'not-verified'}">●</span>
                             <div>
                                 <div class="user-name"><b>${u.email || 'N/A'}</b></div>
@@ -608,9 +724,88 @@ function loadUsers() {
     });
 }
 
-function displayUserDetails(userInfo) {
+// Helper function to parse verification status (handles string "true" and boolean true)
+function parseVerificationStatus(value) {
+    if (value === true || value === 'true' || value === 'True' || value === 'TRUE') {
+        return true;
+    }
+    return false;
+}
+
+async function displayUserDetails(userInfo) {
     mainContentTitle.textContent = userInfo.userName;
     detailsView.style.display = 'block';
+
+    // === ON-DEMAND PROFILE FETCH ===
+    // Fetch profile data from 'user/{uid}/profile' path
+    const expiryAlertContainer = document.getElementById('expiry-alert-container') || createExpiryAlertContainer();
+    expiryAlertContainer.innerHTML = ''; // Clear previous alerts
+    expiryAlertContainer.style.display = 'none';
+
+    // Create/get verification badge container in dashboard title
+    let verificationBadgeSpan = document.getElementById('dashboard-verification-badge');
+    if (!verificationBadgeSpan) {
+        verificationBadgeSpan = document.createElement('span');
+        verificationBadgeSpan.id = 'dashboard-verification-badge';
+        verificationBadgeSpan.style.marginLeft = '10px';
+        mainContentTitle.parentNode.insertBefore(verificationBadgeSpan, mainContentTitle.nextSibling);
+    }
+    verificationBadgeSpan.innerHTML = '<span style="color: gray;">⏳</span>'; // Loading state
+
+    try {
+        // Fetch profile from 'user/{uid}/profile'
+        const profileRef = ref(db, `user/${userInfo.userId}/profile`);
+        const profileSnapshot = await get(profileRef);
+        const profileData = profileSnapshot.val();
+
+        console.log(`[ON-DEMAND] Fetched profile for ${userInfo.userId}:`, profileData);
+
+        let isEmailVerified = false;
+        let profileTimestamp = null;
+
+        if (profileData) {
+            // Check for emailVerified OR gmail_verified (loose check for boolean/string)
+            isEmailVerified = parseVerificationStatus(profileData.emailVerified) || 
+                              parseVerificationStatus(profileData.gmail_verified);
+            profileTimestamp = profileData.timestamp || null;
+
+            // Store profile in selectedUserInfo for other functions
+            selectedUserInfo.profile = {
+                emailVerified: isEmailVerified,
+                timestamp: profileTimestamp
+            };
+        }
+
+        // === UPDATE DASHBOARD UI ===
+        // A. Verification Badge next to user name
+        if (isEmailVerified) {
+            verificationBadgeSpan.innerHTML = '<span class="email-verified-badge" title="Email Verified" style="font-size: 1.2rem;">✅</span>';
+        } else {
+            verificationBadgeSpan.innerHTML = '<span class="email-unverified-badge" title="Email Not Verified" style="font-size: 1.2rem;">❌</span>';
+        }
+
+        // B. 3-Day Expiry Logic for Unverified Users
+        if (!isEmailVerified && profileTimestamp) {
+            const currentTime = Date.now();
+            const timeDifference = currentTime - profileTimestamp;
+            const threeDaysInMs = 259200000; // 3 days in milliseconds
+
+            if (timeDifference > threeDaysInMs) {
+                const daysExpired = Math.floor(timeDifference / 86400000); // Convert to days
+                expiryAlertContainer.innerHTML = `
+                    <div class="expiry-alert">
+                        <span class="expiry-icon">⛔</span>
+                        <span class="expiry-text">EXPIRED USER (${daysExpired} Days+) - DELETE NOW</span>
+                    </div>
+                `;
+                expiryAlertContainer.style.display = 'block';
+            }
+        }
+
+    } catch (error) {
+        console.error(`[ON-DEMAND] Failed to fetch profile for ${userInfo.userId}:`, error);
+        verificationBadgeSpan.innerHTML = '<span style="color: orange;" title="Could not fetch verification status">⚠️</span>';
+    }
 
     const childSelectorContainer = document.querySelector('.child-selector-container');
     const childSelector = document.createElement('select');
@@ -641,6 +836,7 @@ function displayUserDetails(userInfo) {
         updateFreezeStatus();
         updateAppVisibility();
         loadLimits(selectedUserInfo.userId, selectedUserInfo.childKey);
+        setupChatUnreadListener(selectedUserInfo.userId, selectedUserInfo.childKey);
     };
 
     // Show action buttons
@@ -655,6 +851,9 @@ function displayUserDetails(userInfo) {
     updateFreezeStatus();
     updateAppVisibility();
     loadLimits(userInfo.userId, selectedUserInfo.childKey);
+    
+    // Start listening for unread chat messages
+    setupChatUnreadListener(userInfo.userId, selectedUserInfo.childKey);
 
     if (window.innerWidth <= 992) { sidebar.classList.remove('open'); overlay.style.display = 'none'; }
 }
@@ -1637,6 +1836,9 @@ function openImageModal(imageUrl) {
 }
 
 function renderChatInterface(userId, childKey) {
+    // Mark messages as read when chat is opened
+    markChatAsRead(userId, childKey);
+    
     const chatHtml = `
         <div class="live-chat-area">
             <div class="chat-messages" id="admin-chat-messages"></div>
@@ -1679,6 +1881,9 @@ function renderChatInterface(userId, childKey) {
                     bubble.appendChild(time);
                     messagesArea.appendChild(bubble);
                 });
+                
+                // Mark as read whenever new messages are displayed
+                markChatAsRead(userId, childKey);
             } else {
                 messagesArea.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">No messages yet. Start the conversation!</p>';
             }
@@ -1697,6 +1902,8 @@ function renderChatInterface(userId, childKey) {
             timestamp: serverTimestamp()
         }).then(() => {
             input.value = '';
+            // Mark as read after sending
+            markChatAsRead(userId, childKey);
         }).catch(e => alert('Error sending message: ' + e.message));
     };
 
@@ -2038,3 +2245,353 @@ function handleRealtimeUpdate(snapshot, category) {
     });
 }
 
+// ==========================================
+// GHOST ACCOUNTS MANAGER
+// ==========================================
+
+// Open Ghost Accounts Modal
+if (ghostAccountsBtn) {
+    ghostAccountsBtn.addEventListener('click', () => {
+        openModal(ghostAccountsModal);
+        loadGhostAccounts();
+    });
+}
+
+// Close modal
+if (ghostAccountsModal) {
+    ghostAccountsModal.querySelector('.modal-close-btn').addEventListener('click', () => {
+        closeModal(ghostAccountsModal);
+    });
+    ghostAccountsModal.addEventListener('click', (e) => {
+        if (e.target === ghostAccountsModal) {
+            closeModal(ghostAccountsModal);
+        }
+    });
+}
+
+// Load Ghost Accounts from Firebase
+async function loadGhostAccounts() {
+    ghostAccountsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">🔍 Scanning for ghost accounts...</td></tr>';
+    ghostCountLabel.textContent = 'Scanning...';
+    deleteAllGhostsBtn.style.display = 'none';
+
+    try {
+        // Get all users from 'user' node
+        const userSnapshot = await get(ref(db, 'user'));
+        const allUsersSnapshot = await get(ref(db, 'All_Users_List'));
+        
+        if (!userSnapshot.exists()) {
+            ghostAccountsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #27ae60;">✅ No ghost accounts found!</td></tr>';
+            ghostCountLabel.textContent = '0 Ghost Accounts';
+            return;
+        }
+
+        const userData = userSnapshot.val();
+        const allUsersList = allUsersSnapshot.exists() ? allUsersSnapshot.val() : {};
+        
+        const ghostAccounts = [];
+
+        // Check each UID in 'user' node
+        Object.keys(userData).forEach(uid => {
+            const userContent = userData[uid];
+            
+            // Skip if this UID has actual devices in All_Users_List
+            if (allUsersList[uid]) {
+                const devices = Object.keys(allUsersList[uid]).filter(key => 
+                    !['email', 'online', 'uid', 'timestamp', 'last_seen', 'emailVerified', 'gmail_verified', 'profile'].includes(key)
+                );
+                if (devices.length > 0) return; // Has real devices, skip
+            }
+
+            // Check if this is a ghost account (only has profile or notificationsMessages)
+            let isGhost = true;
+            let emailVerified = false;
+            let hasOnlyProfile = false;
+            let hasOnlyNotification = false;
+
+            Object.keys(userContent).forEach(key => {
+                const content = userContent[key];
+                
+                if (key === 'profile' && content && typeof content === 'object') {
+                    // Check profile node
+                    const profileKeys = Object.keys(content);
+                    if (profileKeys.length === 1 && content.emailVerified !== undefined) {
+                        hasOnlyProfile = true;
+                        emailVerified = content.emailVerified;
+                    }
+                } else if (typeof content === 'object' && content !== null) {
+                    // Check child nodes (like "moto", "S", etc.)
+                    const childKeys = Object.keys(content);
+                    
+                    // If only has notificationsMessages
+                    if (childKeys.length === 1 && content.notificationsMessages) {
+                        hasOnlyNotification = true;
+                    } else if (childKeys.includes('profile') && childKeys.length <= 2) {
+                        // Has profile inside child
+                        if (content.profile && content.profile.emailVerified !== undefined) {
+                            emailVerified = content.profile.emailVerified;
+                        }
+                        if (childKeys.length === 1 || (childKeys.length === 2 && content.notificationsMessages)) {
+                            hasOnlyProfile = true;
+                        }
+                    } else {
+                        // Has actual data (Calls, SMS, etc.)
+                        const dataKeys = childKeys.filter(k => 
+                            !['profile', 'notificationsMessages', 'permissionEnable'].includes(k)
+                        );
+                        if (dataKeys.length > 0) {
+                            isGhost = false;
+                        }
+                    }
+                }
+            });
+
+            // If ghost account found
+            if (isGhost && (hasOnlyProfile || hasOnlyNotification)) {
+                ghostAccounts.push({
+                    uid: uid,
+                    emailVerified: emailVerified,
+                    type: hasOnlyProfile ? 'profile_only' : 'notification_only'
+                });
+            }
+        });
+
+        // Display results
+        if (ghostAccounts.length === 0) {
+            ghostAccountsTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #27ae60;">✅ No ghost accounts found!</td></tr>';
+            ghostCountLabel.textContent = '0 Ghost Accounts';
+            deleteAllGhostsBtn.style.display = 'none';
+            downloadGhostsPdfBtn.style.display = 'none';
+            currentGhostAccounts = [];
+        } else {
+            currentGhostAccounts = ghostAccounts; // Store for PDF download
+            ghostCountLabel.textContent = `⚠️ ${ghostAccounts.length} Ghost Account${ghostAccounts.length > 1 ? 's' : ''} Found`;
+            deleteAllGhostsBtn.style.display = 'block';
+            downloadGhostsPdfBtn.style.display = 'block';
+            
+            ghostAccountsTableBody.innerHTML = ghostAccounts.map(ghost => `
+                <tr data-uid="${ghost.uid}" style="border-bottom: 1px solid #444;">
+                    <td style="padding: 10px; font-size: 0.85rem; word-break: break-all;">${ghost.uid}</td>
+                    <td style="padding: 10px; text-align: center;">
+                        ${ghost.emailVerified ? 
+                            '<span style="color: #27ae60;">✅ Verified</span>' : 
+                            '<span style="color: #e74c3c;">❌ Not Verified</span>'
+                        }
+                    </td>
+                    <td style="padding: 10px; text-align: center;">
+                        <span style="background: ${ghost.type === 'profile_only' ? '#3498db' : '#9b59b6'}; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">
+                            ${ghost.type === 'profile_only' ? '👤 Profile Only' : '🔔 Notification Only'}
+                        </span>
+                    </td>
+                    <td style="padding: 10px; text-align: right;">
+                        <button class="delete-ghost-btn" data-uid="${ghost.uid}" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">
+                            🗑️ Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Add click handlers for individual delete buttons
+            document.querySelectorAll('.delete-ghost-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const uid = e.target.dataset.uid;
+                    if (confirm(`Are you sure you want to delete ghost account: ${uid}?`)) {
+                        await deleteGhostAccount(uid);
+                        loadGhostAccounts(); // Refresh list
+                    }
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Error loading ghost accounts:', error);
+        ghostAccountsTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #e74c3c;">❌ Error: ${error.message}</td></tr>`;
+        ghostCountLabel.textContent = 'Error loading';
+    }
+}
+
+// Delete single ghost account
+async function deleteGhostAccount(uid) {
+    try {
+        const updates = {};
+        updates[`user/${uid}`] = null;
+        updates[`All_Users_List/${uid}`] = null; // Also clean from All_Users_List if exists
+        
+        await update(ref(db), updates);
+        console.log(`Ghost account ${uid} deleted successfully`);
+        return true;
+    } catch (error) {
+        console.error(`Error deleting ghost account ${uid}:`, error);
+        alert(`Error deleting account: ${error.message}`);
+        return false;
+    }
+}
+
+// Delete All Ghost Accounts
+if (deleteAllGhostsBtn) {
+    deleteAllGhostsBtn.addEventListener('click', async () => {
+        const rows = ghostAccountsTableBody.querySelectorAll('tr[data-uid]');
+        const count = rows.length;
+        
+        if (count === 0) {
+            alert('No ghost accounts to delete');
+            return;
+        }
+
+        if (!confirm(`⚠️ WARNING!\n\nAre you sure you want to permanently delete ALL ${count} ghost accounts?\n\nThis action CANNOT be undone!`)) {
+            return;
+        }
+
+        // Double confirmation for safety
+        if (!confirm(`🚨 FINAL CONFIRMATION\n\nDeleting ${count} accounts permanently. Proceed?`)) {
+            return;
+        }
+
+        deleteAllGhostsBtn.disabled = true;
+        deleteAllGhostsBtn.textContent = '⏳ Deleting...';
+
+        try {
+            const updates = {};
+            rows.forEach(row => {
+                const uid = row.dataset.uid;
+                updates[`user/${uid}`] = null;
+                updates[`All_Users_List/${uid}`] = null;
+            });
+
+            await update(ref(db), updates);
+            
+            alert(`✅ Successfully deleted ${count} ghost accounts!`);
+            loadGhostAccounts(); // Refresh list
+        } catch (error) {
+            console.error('Error deleting all ghost accounts:', error);
+            alert(`❌ Error: ${error.message}`);
+        } finally {
+            deleteAllGhostsBtn.disabled = false;
+            deleteAllGhostsBtn.textContent = '🗑️ Delete All Ghost Accounts';
+        }
+    });
+}
+// Download Ghost Accounts as PDF
+if (downloadGhostsPdfBtn) {
+    downloadGhostsPdfBtn.addEventListener('click', () => {
+        downloadGhostAccountsPDF();
+    });
+}
+
+function downloadGhostAccountsPDF() {
+    if (!currentGhostAccounts || currentGhostAccounts.length === 0) {
+        alert("No ghost accounts to download");
+        return;
+    }
+
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("PDF Library not loaded. Please refresh the page.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Page Settings
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const maxLineWidth = pageWidth - (margin * 2);
+    let y = 20;
+
+    // Header
+    const timestamp = new Date().toLocaleString();
+    doc.setFontSize(18);
+    doc.setTextColor(155, 89, 182); // Purple color
+    doc.text('GHOST ACCOUNTS REPORT', margin, y);
+    y += 10;
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${timestamp}`, margin, y);
+    y += 5;
+    doc.text(`Total Ghost Accounts: ${currentGhostAccounts.length}`, margin, y);
+    y += 10;
+
+    // Separator line
+    doc.setDrawColor(155, 89, 182);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 10;
+
+    // Table Header
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'bold');
+    doc.text('S.No', margin, y);
+    doc.text('UID', margin + 15, y);
+    doc.text('Email Verified', margin + 120, y);
+    doc.text('Type', margin + 155, y);
+    y += 5;
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 7;
+
+    // Table Content
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8);
+
+    currentGhostAccounts.forEach((ghost, index) => {
+        // Check if we need a new page
+        if (y > pageHeight - 30) {
+            doc.addPage();
+            y = 20;
+            
+            // Add header on new page
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('S.No', margin, y);
+            doc.text('UID', margin + 15, y);
+            doc.text('Email Verified', margin + 120, y);
+            doc.text('Type', margin + 155, y);
+            y += 5;
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 7;
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(8);
+        }
+
+        // Serial Number
+        doc.text(`${index + 1}`, margin, y);
+        
+        // UID (truncate if too long)
+        const uidText = ghost.uid.length > 30 ? ghost.uid.substring(0, 27) + '...' : ghost.uid;
+        doc.text(uidText, margin + 15, y);
+        
+        // Email Verified Status
+        const verifiedText = ghost.emailVerified ? 'Yes' : 'No';
+        doc.setTextColor(ghost.emailVerified ? 39 : 231, ghost.emailVerified ? 174 : 76, ghost.emailVerified ? 96 : 60);
+        doc.text(verifiedText, margin + 125, y);
+        
+        // Type
+        doc.setTextColor(0, 0, 0);
+        const typeText = ghost.type === 'profile_only' ? 'Profile Only' : 'Notification Only';
+        doc.text(typeText, margin + 155, y);
+        
+        y += 6;
+    });
+
+    // Footer
+    y += 10;
+    if (y > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
+    }
+    doc.setDrawColor(155, 89, 182);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 7;
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Note: These accounts have signed up but never installed the mobile app.', margin, y);
+    y += 5;
+    doc.text('They can be safely deleted to clean up the database.', margin, y);
+
+    // Save PDF
+    const filename = `Ghost_Accounts_${new Date().getTime()}.pdf`;
+    doc.save(filename);
+}
