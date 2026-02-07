@@ -780,37 +780,72 @@ async function displayUserDetails(userInfo) {
         }
 
         // ==========================================
-        // [NEW] FETCH PLAN / SUBSCRIPTION (Robust)
+        // [NEW] FETCH PLAN / SUBSCRIPTION (Robust & Optimized)
         // ==========================================
         let planName = 'Free'; 
         let planColor = '#95a5a6'; // Free Gray
+        let childPlanDetails = []; // To store details of each child's plan
+
         try {
-            // 1. Check explicit subscription node
-            const subRef = ref(db, `user/${userInfo.userId}/subscription`);
-            const subSnap = await get(subRef);
+            // New Strategy: Instead of fetching one global plan, we iterate known children from 'userInfo'
+            // Since we already have 'userInfo' loaded from All_Users_List, this is fast.
             
-            if(subSnap.exists() && subSnap.val().planName) {
-                planName = subSnap.val().planName;
+            if (userInfo.children) {
+                 const childKeys = Object.keys(userInfo.children);
+                 
+                 // We need to fetch subscription for each child.
+                 // To keep it fast ("पलक झपकते ही"), we will run these fetches in parallel using Promise.all
+                 // We check user/{uid}/{childKey}/subscription for each child.
+
+                 const planPromises = childKeys.map(key => 
+                     get(ref(db, `user/${userInfo.userId}/${key}/subscription`))
+                     .then(snap => ({ key, val: snap.val() }))
+                     .catch(err => ({ key, val: null }))
+                 );
+
+                 const results = await Promise.all(planPromises);
+
+                 // Analyze results
+                 let hasPlatinum = false;
+                 let hasGold = false;
+                 let hasBasic = false;
+
+                 results.forEach(res => {
+                     const p = res.val ? res.val.planName : null;
+                     if(p) {
+                         const cName = userInfo.children[res.key].name || 'Child';
+                         childPlanDetails.push(`${cName}: ${p}`);
+                         
+                         if(p === 'Platinum') hasPlatinum = true;
+                         else if(p === 'Gold') hasGold = true;
+                         else if(p === 'Basic') hasBasic = true;
+                     }
+                 });
+
+                 // Determine "Override" label for the User Card
+                 if (hasPlatinum) planName = 'Platinum (Mixed)';
+                 else if (hasGold) planName = 'Gold (Mixed)';
+                 else if (hasBasic) planName = 'Basic (Mixed)';
+                 else {
+                     // Fallback check: Global Subscription (Old Logic compatibility)
+                     const globalSubSnap = await get(ref(db, `user/${userInfo.userId}/subscription`));
+                     if(globalSubSnap.exists() && globalSubSnap.val().planName) {
+                          planName = globalSubSnap.val().planName;
+                     }
+                 }
             } else {
-                // 2. Fallback: Check Limits (Heuristic from first child)
-                if(userInfo.children && Object.keys(userInfo.children).length > 0) {
-                    const firstChildKey = Object.keys(userInfo.children)[0];
-                    const limitRef = ref(db, `user/${userInfo.userId}/${firstChildKey}/limits`);
-                    const limitSnap = await get(limitRef);
-                    if(limitSnap.exists()) {
-                        const val = limitSnap.val();
-                        const dur = val.maxRecordingDuration || 30;
-                        const vLim = val.maxVideoLimit || 0;
-                        
-                        if ((dur >= 300) || (vLim >= 100)) planName = 'Platinum';
-                        else if ((dur >= 60) || (vLim >= 20)) planName = 'Gold';
-                    }
-                }
+                 // No children data in All_Users_List? Fallback to Global
+                 const subRef = ref(db, `user/${userInfo.userId}/subscription`);
+                 const subSnap = await get(subRef);
+                 if(subSnap.exists() && subSnap.val().planName) {
+                    planName = subSnap.val().planName;
+                 }
             }
 
-            if(planName === 'Gold') planColor = '#f1c40f'; 
-            if(planName === 'Platinum') planColor = '#9b59b6';
-            if(planName === 'Basic') planColor = '#3498db';
+            // Colors based on highest tier found
+            if(planName.includes('Gold')) planColor = '#f1c40f'; 
+            if(planName.includes('Platinum')) planColor = '#9b59b6';
+            if(planName.includes('Basic')) planColor = '#3498db';
             
         } catch(e) { console.error("Sub fetch error", e); }
 
@@ -818,6 +853,9 @@ async function displayUserDetails(userInfo) {
         // === UPDATE DASHBOARD UI ===
         // A. Verification Badge next to user name + PLAN NAME + UID
         let badgeHtml = '';
+        
+        // Add Detailed Tooltip for Mixed Plans
+        let planTooltip = childPlanDetails.length > 0 ? `title="${childPlanDetails.join(', ')}"` : '';
         if (isEmailVerified) {
             badgeHtml = '<span class="email-verified-badge" title="Email Verified" style="font-size: 1.2rem;">✅</span>';
         } else {
@@ -825,7 +863,7 @@ async function displayUserDetails(userInfo) {
         }
         
         // Plan Badge
-        badgeHtml += `<span style="background:${planColor}; color:white; padding:4px 8px; border-radius:4px; font-size:0.85rem; margin-left:12px; font-weight:bold; letter-spacing:0.5px; text-transform:uppercase; vertical-align:middle; box-shadow:0 2px 5px rgba(0,0,0,0.1);">${planName} Plan</span>`;
+        badgeHtml += `<span ${planTooltip} style="cursor:help; background:${planColor}; color:white; padding:4px 8px; border-radius:4px; font-size:0.85rem; margin-left:12px; font-weight:bold; letter-spacing:0.5px; text-transform:uppercase; vertical-align:middle; box-shadow:0 2px 5px rgba(0,0,0,0.1);">${planName} Plan</span>`;
         
         // UID Badge (Requested) - Small and clear
         badgeHtml += `<span style="background:#34495e; color:#ecf0f1; padding:4px 8px; border-radius:4px; font-size:0.8rem; margin-left:8px; font-family:monospace; vertical-align:middle;">UID: ${userInfo.userId.substring(0,6)}..</span>`;
