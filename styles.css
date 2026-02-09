@@ -1911,3 +1911,44 @@
         box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
     }
 }
+/* --- Clean Media Viewer (Strict Cropping) - Ported from Parents Panel --- */
+#clean-media-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95); z-index: 9999;
+    display: none; justify-content: center; align-items: center; flex-direction: column;
+}
+#clean-media-modal.visible { display: flex; animation: fadeIn 0.3s ease; }
+
+.clean-viewer-container {
+    width: 90%;
+    max-width: 500px; /* Keep it compact */
+    /* Strict Height Control to cut off the Footer */
+    height: 60vh; 
+    max-height: 450px; 
+    background: #151515;
+    border-radius: 12px;
+    overflow: hidden; /* This cuts the extra content */
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    border: 1px solid #333;
+}
+
+/* Masking Logic: Shift iframe UP to hide header, Container height hides footer */
+.clean-viewer-iframe {
+    width: 100%;
+    height: 200%; /* Make iframe very tall so footer pushes down */
+    border: none;
+    position: absolute;
+    top: -140px; /* Increased negative margin to hide Header completely */
+    left: 0;
+    background: #151515;
+}
+
+.clean-close-btn {
+    position: absolute; top: 20px; right: 20px; color: white;
+    font-size: 35px; cursor: pointer; z-index: 10000;
+    background: rgba(255, 0, 0, 0.8); width: 40px; height: 40px;
+    text-align: center; line-height: 35px; border-radius: 50%;
+    transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.clean-close-btn:hover { background: red; transform: scale(1.1); }
