@@ -1737,6 +1737,28 @@
 .notification-card-enhanced.messenger .notification-header-enhanced { background-color: #1877F2; }
 .notification-card-enhanced.default .notification-header-enhanced { background-color: var(--secondary-dark); }
 
+/* Sidebar Alert Style */
+.user-list-item.has-alert {
+    border: 2px solid #f1c40f !important;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.4) !important;
+    animation: pulse-gold 2s infinite;
+}
+
+.user-list-item.has-alert::after {
+    content: "⚠️";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
+
+@keyframes pulse-gold {
+    0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(241, 196, 15, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+}
+
 /* --- Alert Styles for Tagged Data --- */
 .critical-highlight {
     border: 2px solid #FFD700 !important;

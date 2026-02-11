@@ -124,9 +124,14 @@
                 </button>
             </div>
             <!-- Search Bar -->
-            <div class="search-container" style="padding: 0 10px 10px 10px;">
+            <div class="search-container" style="padding: 0 10px 10px 10px; display: flex; flex-direction: column; gap: 8px;">
                 <input type="text" id="user-search-input" placeholder="🔍 Search Email or UID..." 
                        style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #2c3e50; color: white;">
+                
+                <button id="scan-banking-btn" style="width: 100%; padding: 8px; background: linear-gradient(135deg, #f1c40f, #f39c12); color: #000; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Scan Banking/OTP
+                </button>
             </div>
             <ul id="user-list" class="user-list">
                 </ul>
