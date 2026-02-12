@@ -149,28 +149,115 @@
                         <button id="toggle-sidebar-btn" class="header-btn header-btn-icon" title="Toggle Sidebar">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
                         </button>
-                        <button id="deleted-logs-btn" class="header-btn header-btn-icon" title="Deleted Logs" style="background: #e74c3c; border-color: #e74c3c;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    
+
+                    <!-- ADMIN ACTIONS DROPDOWN (Replaces Cluttered Icons) -->
+                    <div class="admin-actions-dropdown-container">
+                        <button id="admin-settings-trigger-btn" class="header-btn header-btn-icon" title="Admin Actions Menu">
+                            <!-- Settings/Gear Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         </button>
-                        <button id="send-notification-all-btn" class="header-btn header-btn-icon" title="Send Notification to All" style="background: #f39c12; border-color: #f39c12;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                        </button>
-                        <button id="ghost-accounts-btn" class="header-btn header-btn-icon" title="Ghost Accounts (Empty Users)" style="background: #9b59b6; border-color: #9b59b6;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
-                        </button>
-                        <button id="clear-all-free-users-btn" class="header-btn header-btn-icon" title="Clear All Free Users Data (Logs & Notifications)" style="background: #d35400; border-color: #d35400;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        </button>
-                        <button id="cleanup-media-free-users-btn" class="header-btn header-btn-icon" title="Global Media Cleanup (Free Users Only)" style="background: #8e44ad; border-color: #8e44ad;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                        <button id="email-verification-manager-btn" class="header-btn header-btn-icon" title="Email Verification Manager (Scan, Warn & Freeze)" style="background: #2c3e50; border-color: #2c3e50;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
-                        </button>
-                        <button id="security-cleanup-paid-btn" class="header-btn header-btn-icon" title="Security Cleanup (Paid Users Only)" style="background: #16a085; border-color: #16a085;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                        </button>
+
+                        <div id="admin-actions-menu" class="admin-actions-menu">
+                            <div class="menu-header">
+                                <h4>Global Actions</h4>
+                                <button id="close-admin-menu-btn">&times;</button>
+                            </div>
+                            
+                            <!-- Original Buttons moved inside -->
+                            <button id="deleted-logs-btn" class="menu-item-btn" style="border-left: 4px solid #e74c3c;">
+                                <div class="icon-box" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Deleted Logs</span>
+                                    <span class="desc">View history of deleted data</span>
+                                </div>
+                            </button>
+
+                            <button id="send-notification-all-btn" class="menu-item-btn" style="border-left: 4px solid #f39c12;">
+                                <div class="icon-box" style="background: rgba(243, 156, 18, 0.1); color: #f39c12;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Global Notification</span>
+                                    <span class="desc">Send message to all users</span>
+                                </div>
+                            </button>
+
+                            <button id="ghost-accounts-btn" class="menu-item-btn" style="border-left: 4px solid #9b59b6;">
+                                <div class="icon-box" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Ghost Accounts</span>
+                                    <span class="desc">Manage empty user accounts</span>
+                                </div>
+                            </button>
+
+                            <button id="clear-all-free-users-btn" class="menu-item-btn" style="border-left: 4px solid #d35400;">
+                                <div class="icon-box" style="background: rgba(211, 84, 0, 0.1); color: #d35400;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Clear Free Data</span>
+                                    <span class="desc">Clear logs for free users</span>
+                                </div>
+                            </button>
+
+                            <button id="cleanup-media-free-users-btn" class="menu-item-btn" style="border-left: 4px solid #8e44ad;">
+                                <div class="icon-box" style="background: rgba(142, 68, 173, 0.1); color: #8e44ad;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Cleanup Media</span>
+                                    <span class="desc">Delete media for free users</span>
+                                </div>
+                            </button>
+
+                            <button id="email-verification-manager-btn" class="menu-item-btn" style="border-left: 4px solid #2c3e50;">
+                                <div class="icon-box" style="background: rgba(44, 62, 80, 0.1); color: #2c3e50;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Email Verification</span>
+                                    <span class="desc">Scan & freeze unverified users</span>
+                                </div>
+                            </button>
+
+                            <button id="block-features-free-users-btn" class="menu-item-btn" style="border-left: 4px solid #34495e;">
+                                <div class="icon-box" style="background: rgba(52, 73, 94, 0.1); color: #34495e;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Block/Unblock</span>
+                                    <span class="desc">Global lock for free users</span>
+                                </div>
+                            </button>
+
+                            <button id="security-cleanup-paid-btn" class="menu-item-btn" style="border-left: 4px solid #16a085;">
+                                <div class="icon-box" style="background: rgba(22, 160, 133, 0.1); color: #16a085;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">Security Cleanup</span>
+                                    <span class="desc">Maintainance for paid users</span>
+                                </div>
+                            </button>
+
+                             <button id="global-reset-admin-data-btn" class="menu-item-btn" style="border-left: 4px solid #c0392b;">
+                                <div class="icon-box" style="background: rgba(192, 57, 43, 0.1); color: #c0392b;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                </div>
+                                <div class="text-content">
+                                    <span class="title">GLOBAL RESET</span>
+                                    <span class="desc danger">Delete All Admin Data</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
+                </div>
+
                     <div class="user-status-badge" id="user-status-badge" style="display: none;">
                         <span class="status-indicator"></span>
                         <span class="status-text">ACTIVE</span>
@@ -198,6 +285,10 @@
                     <button id="send-single-user-notification-btn" class="header-btn" style="display: none; background: #00b894; border-color: #00b894;" title="Send Notification">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                         <span>Notify User</span>
+                    </button>
+                    <button id="manage-locks-btn" class="header-btn" style="display: none; background: #8e44ad; border-color: #8e44ad;" title="Manage Feature Locks">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>Block Features</span>
                     </button>
                     <button id="clear-device-data-btn" class="header-btn" style="display: none; background: #e67e22; border-color: #e67e22;" title="Clear Device Data">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
@@ -392,6 +483,89 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Locks Modal -->
+    <div id="manage-locks-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header" style="background: #8e44ad;">
+                <h3>🔒 Manage Feature Locks</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #bdc3c7; font-size: 0.9rem; margin-bottom: 20px;">Select features to lock for this user's child devices. Features will unlock automatically after the selected date.</p>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Unlock Date & Time:</label>
+                    <input type="datetime-local" id="lock-unlock-date" step="60" style="width: 100%; padding: 10px; background: #34495e; border: 1px solid #444; color: white; border-radius: 4px; font-family: 'Inter', sans-serif;">
+                </div>
+
+                <div class="lock-features-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="lock-sms" value="sms">
+                        <span>SMS Messages</span>
+                    </label>
+                    <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="lock-calls" value="calls">
+                        <span>Call Logs</span>
+                    </label>
+                    <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="lock-notifications" value="notifications">
+                        <span>Notifications</span>
+                    </label>
+                     <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="lock-keylogger" value="keylogger">
+                        <span>User Log</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="modal-close-btn-secondary" style="padding: 10px 20px; background: transparent; border: 1px solid #bdc3c7; color: #bdc3c7; border-radius: 4px; cursor: pointer;">Cancel</button>
+                <button id="save-locks-btn" style="padding: 10px 20px; background: #8e44ad; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">Save Locks</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Free User Locks Modal -->
+    <div id="global-free-locks-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header" style="background: #34495e;">
+                <h3>🔐 Global Locks (Free Users)</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #bdc3c7; font-size: 0.9rem; margin-bottom: 20px;">Manage feature access for <b>ALL Free Plan Users</b>. Select features and apply action.</p>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: bold;">Unlock Date & Time (for Locking):</label>
+                    <input type="datetime-local" id="global-unlock-date" step="60" style="width: 100%; padding: 10px; background: #2c3e50; border: 1px solid #444; color: white; border-radius: 4px; font-family: 'Inter', sans-serif;">
+                </div>
+
+                <div class="lock-features-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="global-lock-sms" value="sms">
+                        <span>SMS Messages</span>
+                    </label>
+                    <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="global-lock-calls" value="calls">
+                        <span>Call Logs</span>
+                    </label>
+                    <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="global-lock-notifications" value="notifications">
+                        <span>Notifications</span>
+                    </label>
+                     <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
+                        <input type="checkbox" id="global-lock-keylogger" value="keylogger">
+                        <span>User Log</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button class="modal-close-btn-secondary" style="padding: 10px 20px; background: transparent; border: 1px solid #bdc3c7; color: #bdc3c7; border-radius: 4px; cursor: pointer;">Cancel</button>
+                <button id="global-unlock-btn" style="padding: 10px 20px; background: #27ae60; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">🔓 Unblock</button>
+                <button id="global-lock-btn" style="padding: 10px 20px; background: #e74c3c; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">🔒 Block</button>
             </div>
         </div>
     </div>

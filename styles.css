@@ -716,6 +716,12 @@
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
+        .modal-overlay.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         body.modal-open .modal-overlay {
             opacity: 1;
             transform: translateY(0);
@@ -1974,3 +1980,251 @@
     transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 .clean-close-btn:hover { background: red; transform: scale(1.1); }
+
+/* ========================================== */
+/* FULL SCREEN NOTIFICATION MODAL (Responsive) */
+/* ========================================== */
+.modal-content-notification {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: var(--bg-dark);
+}
+
+.modal-content-notification .modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--primary-dark);
+}
+
+.modal-content-notification .modal-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-content-notification textarea {
+    flex-grow: 1;
+    width: 100%;
+    resize: none;
+    font-size: 1.1rem;
+    padding: 15px;
+    border-radius: 8px;
+    background: var(--secondary-dark);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    font-family: inherit; /* Ensure font matches */
+}
+
+.modal-content-notification .modal-close-btn {
+    font-size: 2rem;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-content-notification .modal-close-btn:hover {
+    background: var(--accent-red);
+    color: white;
+    transform: rotate(90deg);
+}
+
+
+/* ----------------------------------------------------- */
+/*  ADMIN ACTIONS DROPDOWN (Gear Menu) STYLES           */
+/* ----------------------------------------------------- */
+
+.admin-actions-dropdown-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+#admin-settings-trigger-btn {
+    background: rgba(255, 255, 255, 0.05); /* Subtle glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#admin-settings-trigger-btn:hover,
+#admin-settings-trigger-btn.active {
+    background: var(--accent-blue);
+    color: white;
+    transform: rotate(90deg); /* Nice spin effect on hover/active */
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.4);
+}
+
+.admin-actions-menu {
+    position: absolute;
+    top: 120%; /* Just below the button */
+    left: 0;
+    width: 320px;
+    background: rgba(22, 27, 34, 0.95); /* Deep dark background */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 10px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    
+    /* Scroll Support */
+    max-height: 70vh; /* Prevent it from going off-screen on mobile */
+    overflow-y: auto; /* Enable scrolling */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+
+    /* Animation State: Hidden */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+}
+
+.admin-actions-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: all;
+}
+
+/* Menu Header */
+.admin-actions-menu .menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px 12px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 8px;
+}
+
+.admin-actions-menu .menu-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+#close-admin-menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+#close-admin-menu-btn:hover {
+    color: white;
+}
+
+/* Menu Item Buttons */
+.menu-item-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    border-left-width: 4px; /* Uses the inline style color */
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.menu-item-btn:last-child {
+    margin-bottom: 0;
+}
+
+.menu-item-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.menu-item-btn .icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.menu-item-btn .text-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item-btn .title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #eee;
+    margin-bottom: 2px;
+}
+
+.menu-item-btn .desc {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+.menu-item-btn .desc.danger {
+    color: #e74c3c;
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .admin-actions-menu {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 20px 20px 0 0;
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 20px;
+        padding-bottom: 40px; /* Safe area for mobiles */
+        
+        transform: translateY(100%);
+    }
+
+    .admin-actions-menu.active {
+        transform: translateY(0);
+    }
+}
