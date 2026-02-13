@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=12">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -104,12 +104,14 @@
     <div id="login-container" class="login-container">
         <div class="login-card">
             <h2>Admin Login</h2>
-            <input type="email" id="email" placeholder="Email Address" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button id="login-btn">
-                <span>Login Securely</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            </button>
+            <form id="admin-login-form" onsubmit="event.preventDefault();">
+                <input type="email" id="email" placeholder="Email Address" autocomplete="email" required>
+                <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+                <button type="submit" id="login-btn">
+                    <span>Login Securely</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                </button>
+            </form>
             <p id="error-message" class="error"></p>
         </div>
     </div>
@@ -636,6 +638,45 @@
         </div>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <!-- Email Verification Modal -->
+    <div id="email-verification-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px; background: #1a2634; color: #ecf0f1;">
+            <div class="modal-header" style="border-bottom: 1px solid #34495e; padding-bottom: 15px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f1c40f" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    Email Verification Manager
+                </h3>
+                <button class="modal-close-btn" onclick="document.getElementById('email-verification-modal').style.display='none'" style="background: none; border: none; color: #bdc3c7; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                
+                <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                    <div>
+                        <span style="font-weight: bold; color: #e74c3c;">Unverified Users: <span id="unverified-count-badge">0</span></span>
+                    </div>
+                    <button id="refresh-verification-list-btn" style="padding: 8px 12px; background: #3498db; border: none; border-radius: 4px; color: white; cursor: pointer;">
+                        ♻ Refresh List
+                    </button>
+                </div>
+
+                <div class="table-container" style="max-height: 500px; overflow-y: auto; border: 1px solid #34495e; border-radius: 4px;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: #2c3e50; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #34495e;">User Email / ID</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #34495e;">Status</th>
+                                <th style="padding: 12px; text-align: right; border-bottom: 2px solid #34495e;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verification-table-body">
+                            <!-- User Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js?v=12"></script>
 </body>
 </html>
