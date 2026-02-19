@@ -1,12 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
-    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="styles.css?v=14">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
         .status-card {
             background: #2c3e50;
@@ -188,6 +189,16 @@
                                         <span class="desc">Send message to all users</span>
                                     </div>
                                 </button>
+                                
+                                <button id="send-notification-paid-btn" class="menu-item-btn" style="border-left: 4px solid #f1c40f;">
+                                    <div class="icon-box" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                                    </div>
+                                    <div class="text-content">
+                                        <span class="title">Notify Paid Users</span>
+                                        <span class="desc">Message only Premium/Paid</span>
+                                    </div>
+                                </button>
 
                                 <button id="ghost-accounts-btn" class="menu-item-btn" style="border-left: 4px solid #9b59b6;">
                                     <div class="icon-box" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">
@@ -196,6 +207,16 @@
                                     <div class="text-content">
                                         <span class="title">Ghost Accounts</span>
                                         <span class="desc">Manage empty user accounts</span>
+                                    </div>
+                                </button>
+
+                                <button id="smart-block-manager-btn" class="menu-item-btn" style="border-left: 4px solid #e67e22;">
+                                    <div class="icon-box" style="background: rgba(230, 126, 34, 0.1); color: #e67e22;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    </div>
+                                    <div class="text-content">
+                                        <span class="title">Smart Feature Locker</span>
+                                        <span class="desc">Manage Free User Timers</span>
                                     </div>
                                 </button>
 
@@ -259,13 +280,34 @@
                                     </div>
                                 </button>
 
-                                 <button id="global-reset-admin-data-btn" class="menu-item-btn" style="border-left: 4px solid #c0392b;">
-                                    <div class="icon-box" style="background: rgba(192, 57, 43, 0.1); color: #c0392b;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                <!-- NEW: Reset Locks Button -->
+                                <button id="global-reset-locks-btn" class="menu-item-btn" style="border-left: 4px solid #8e44ad;">
+                                    <div class="icon-box" style="background: rgba(142, 68, 173, 0.1); color: #8e44ad;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><line x1="8" y1="15" x2="16" y2="15"></line></svg>
                                     </div>
                                     <div class="text-content">
-                                        <span class="title">GLOBAL RESET</span>
-                                        <span class="desc danger">Delete All Admin Data</span>
+                                        <span class="title">RESET LOCKS</span>
+                                        <span class="desc">Clear Smart Blocks & Locks</span>
+                                    </div>
+                                </button>
+
+                                 <button id="global-reset-admin-data-btn" class="menu-item-btn" style="border-left: 4px solid #c0392b;">
+                                    <div class="icon-box" style="background: rgba(192, 57, 43, 0.1); color: #c0392b;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+                                    </div>
+                                    <div class="text-content">
+                                        <span class="title">RESET NOTIFICATIONS</span>
+                                        <span class="desc danger">Delete All Admin Alerts</span>
+                                    </div>
+                                </button>
+
+                                <button id="global-reset-stuck-commands-btn" class="menu-item-btn" style="border-left: 4px solid #f39c12;">
+                                    <div class="icon-box" style="background: rgba(243, 156, 18, 0.1); color: #f39c12;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                    </div>
+                                    <div class="text-content">
+                                        <span class="title">RESET MEDIA CMDS</span>
+                                        <span class="desc danger">True True False (Fix Stuck)</span>
                                     </div>
                                 </button>
                             </div>
@@ -367,6 +409,10 @@
                      <button class="category-btn" data-category="calllogs">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                         <span>Calls</span>
+                    </button>
+                    <button class="category-btn" data-category="contacts">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e84393" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Contacts</span>
                     </button>
                     <button class="category-btn" data-category="photo">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -483,7 +529,7 @@
             </div>
             <div class="modal-body">
                 <div style="margin-bottom: 15px; padding: 10px; background: rgba(155,89,182,0.2); border-radius: 8px;">
-                    <p style="margin: 0; color: #bdc3c7; font-size: 0.9rem;">ये accounts सिर्फ signup किए गए हैं लेकिन mobile app install नहीं की गई है। इनमें कोई actual data नहीं है।</p>
+                    <p style="margin: 0; color: #bdc3c7; font-size: 0.9rem;">Ye accounts sirf signup kiye gaye hain lekin mobile app install nahi ki gayi hai. Inmein koi actual data nahi hai.</p>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                     <span id="ghost-count-label" style="color: #e74c3c; font-weight: bold;">Loading...</span>
@@ -516,7 +562,7 @@
     <div id="manage-locks-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header" style="background: #8e44ad;">
-                <h3>🔒 Manage Feature Locks</h3>
+                <h3>🔐 Manage Feature Locks</h3>
                 <button class="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
@@ -557,7 +603,7 @@
     <div id="global-free-locks-modal" class="modal-overlay">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header" style="background: #34495e;">
-                <h3>🔐 Global Locks (Free Users)</h3>
+                <h3>🔒 Global Locks (Free Users)</h3>
                 <button class="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
@@ -589,7 +635,7 @@
             </div>
             <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                 <button class="modal-close-btn-secondary" style="padding: 10px 20px; background: transparent; border: 1px solid #bdc3c7; color: #bdc3c7; border-radius: 4px; cursor: pointer;">Cancel</button>
-                <button id="global-unlock-btn" style="padding: 10px 20px; background: #27ae60; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">🔓 Unblock</button>
+                <button id="global-unlock-btn" style="padding: 10px 20px; background: #27ae60; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">🔐 Unblock</button>
                 <button id="global-lock-btn" style="padding: 10px 20px; background: #e74c3c; border: none; color: white; border-radius: 4px; font-weight: bold; cursor: pointer;">🔒 Block</button>
             </div>
         </div>
@@ -650,19 +696,47 @@
             </div>
             <div class="modal-body" style="padding: 20px;">
                 
+                <!-- NEW: Search & Freeze Section -->
+                <div style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; border-radius: 4px;">
+                    <label style="color: #3498db; font-weight: bold;">🔍 Manual Search & Freeze:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="verify-search-uid" placeholder="Enter User UID to Freeze..." style="flex: 1; padding: 10px; background: #2c3e50; border: 1px solid #34495e; color: white; border-radius: 4px; outline: none;">
+                        <button id="verify-search-btn" style="padding: 10px 20px; background: #e74c3c; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap;">
+                             🚫 Freeze
+                        </button>
+                        <button id="verify-search-unfreeze-btn" style="padding: 10px 20px; background: #27ae60; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap;">
+                             🔓 Unfreeze
+                        </button>
+                    </div>
+                    <p style="margin: 0; font-size: 12px; color: #bdc3c7;">
+                        * This will <b>FREEZE</b> the user immediately until they verify their email. Once verified, they will auto-unlock.
+                    </p>
+                </div>
+
                 <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
                     <div>
                         <span style="font-weight: bold; color: #e74c3c;">Unverified Users: <span id="unverified-count-badge">0</span></span>
                     </div>
                     <button id="refresh-verification-list-btn" style="padding: 8px 12px; background: #3498db; border: none; border-radius: 4px; color: white; cursor: pointer;">
-                        ♻ Refresh List
+                        ♻️ Refresh List
                     </button>
+                </div>
+
+                <!-- Bulk Actions Toolbar -->
+                <div id="verify-bulk-actions" style="margin-bottom: 10px; display: none; gap: 10px; padding: 10px; background: rgba(52, 152, 219, 0.15); border-radius: 4px;">
+                    <span style="font-weight: bold; color: #ecf0f1; align-self: center;">Selected: <span id="verify-selected-count">0</span></span>
+                    <button id="verify-bulk-freeze-btn" style="padding: 6px 12px; background: #e74c3c; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.9rem;">🚫 Freeze Selected</button>
+                    <button id="verify-bulk-unfreeze-btn" style="padding: 6px 12px; background: #27ae60; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.9rem;">🔓 Unfreeze Selected</button>
+                    <button id="verify-bulk-notify-btn" style="padding: 6px 12px; background: #f39c12; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.9rem;">🔔 Notify Selected</button>
                 </div>
 
                 <div class="table-container" style="max-height: 500px; overflow-y: auto; border: 1px solid #34495e; border-radius: 4px;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead style="background: #2c3e50; position: sticky; top: 0;">
                             <tr>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #34495e; width: 40px;">
+                                    <input type="checkbox" id="verify-select-all" style="cursor: pointer; transform: scale(1.2);">
+                                </th>
                                 <th style="padding: 12px; text-align: left; border-bottom: 2px solid #34495e;">User Email / ID</th>
                                 <th style="padding: 12px; text-align: center; border-bottom: 2px solid #34495e;">Status</th>
                                 <th style="padding: 12px; text-align: right; border-bottom: 2px solid #34495e;">Actions</th>
@@ -677,6 +751,102 @@
         </div>
     </div>
 
-    <script type="module" src="script.js?v=12"></script>
+    <!-- Smart Block Manager Modal (UPDATED - CENTER & FULL SCREEN) -->
+    <div id="smart-block-modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; opacity:1 !important; transform: none !important;">
+        <div class="modal-container" style="max-width: 95%; width: 1000px; height: 90vh; background: #1a1d21; border-radius: 12px; border: 1px solid #444; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8);">
+            
+            <!-- HEADER -->
+            <div class="modal-header" style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 15px 20px; border-radius: 12px 12px 0 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="background: rgba(59, 130, 246, 0.2); padding: 8px; border-radius: 8px;">
+                        <span style="font-size: 1.2rem;">🛡️</span>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; color: white; font-size: 1.2rem;">Smart Feature Locker</h3>
+                        <div style="color: rgba(255,255,255,0.6); font-size: 0.8rem;">Manage Free User Access Limits</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="smart-force-refresh-btn" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 12px; cursor:pointer; border-radius:6px; font-size: 0.85rem; transition: all 0.2s;">⟳ Refresh</button>
+                    <button class="modal-close-smart-btn" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;padding:0 5px;">&times;</button>
+                </div>
+            </div>
+
+            <!-- CONTROLS & TABS -->
+            <div style="background: #1a1d21; padding: 15px 20px 0; border-bottom: 1px solid #334155;">
+                <!-- Search & Filters -->
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="smart-search-input" placeholder="🔍 Search UID, Email or Device..." style="flex: 1; min-width: 200px; padding: 10px 15px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 0.95rem;">
+                </div>
+
+                <!-- Tabs -->
+                <div style="display: flex; gap: 0;">
+                    <button id="tab-blocked-btn" class="smart-tab-btn active" style="flex: 1; padding: 12px; border: none; background: transparent; color: #94a3b8; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;">
+                        🔴 BLOCKED (<span id="tab-blocked-count">0</span>)
+                    </button>
+                    <button id="tab-active-btn" class="smart-tab-btn" style="flex: 1; padding: 12px; border: none; background: transparent; color: #94a3b8; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;">
+                        🟢 ACTIVE (<span id="tab-active-count">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- USER LIST AREA -->
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 10px; background: #0f172a; color: #ecf0f1; position: relative;">
+                <style>
+                    .smart-tab-btn.active { color: #3b82f6 !important; border-bottom-color: #3b82f6 !important; background: rgba(59, 130, 246, 0.05) !important; }
+                    .smart-user-card {
+                        background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 15px; margin-bottom: 10px;
+                        display: flex; align-items: center; justify-content: space-between; gap: 15px; transition: transform 0.2s;
+                    }
+                    .smart-user-card:hover { border-color: #475569; transform: translateY(-1px); }
+                    .smart-user-info { flex: 1; min-width: 0; }
+                    .smart-user-email { color: #f1f5f9; font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .smart-user-meta { color: #94a3b8; font-size: 0.8rem; display: flex; gap: 10px; align-items: center; }
+                    .smart-uid-pill { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+                    .smart-action-btn {
+                        padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; white-space: nowrap;
+                    }
+                    .btn-block { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+                    .btn-block:hover { background: #ef4444; color: white; }
+                    .btn-unblock { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+                    .btn-unblock:hover { background: #22c55e; color: white; }
+
+                    /* Reponsive Mobile Tweaks */
+                    @media (max-width: 600px) {
+                        .smart-user-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+                        .smart-action-btn { width: 100%; text-align: center; padding: 10px; }
+                        .modal-container { height: 100vh; width: 100%; border-radius: 0; }
+                    }
+                </style>
+                
+                <div id="smart-list-container">
+                    <!-- Cards Injected Here -->
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        <div class="loader-spinner"></div>
+                        <p>Loading users...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER BULK ACTIONS -->
+            <div style="padding: 15px 20px; background: #1a1d21; border-top: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                     <input type="checkbox" id="smart-select-all-visible" style="transform: scale(1.2);">
+                     <label for="smart-select-all-visible" style="color: #94a3b8; font-size: 0.9rem; cursor: pointer;">Select All Visible</label>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="smart-bulk-action-btn" disabled style="background: #334155; color: #94a3b8; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: not-allowed; transition: all 0.2s;">
+                        Action (0)
+                    </button>
+                    <button class="modal-close-smart-btn-secondary" style="background: transparent; border: 1px solid #475569; color: #94a3b8; padding: 10px 15px; border-radius: 6px; cursor: pointer;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js?v=14"></script>
 </body>
 </html>
+
