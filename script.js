@@ -846,8 +846,8 @@ sendSingleUserNotificationBtn.addEventListener('click', () => {
                   return;
               }
 
-              // Send Ping via Local Node.js Server
-              const response = await fetch('http://localhost:3000/send-ping', {
+              // Send Ping via Render Node.js Server
+              const response = await fetch('https://admin-github-io-1.onrender.com/send-ping', {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
@@ -877,8 +877,8 @@ sendSingleUserNotificationBtn.addEventListener('click', () => {
           if (!confirmPing) return;
 
           try {
-              // Send Global Ping via Local Node.js Server
-              const response = await fetch('http://localhost:3000/send-ping-all', {
+              // Send Global Ping via Render Node.js Server
+              const response = await fetch('https://admin-github-io-1.onrender.com/send-ping-all', {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json'
