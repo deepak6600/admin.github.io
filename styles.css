@@ -2321,3 +2321,191 @@
         transform: translateY(0);
     }
 }
+
+/* ==========================================
+   LOCK STATUS & FREE TRIAL MODALS — RESPONSIVE
+   ========================================== */
+
+/* Desktop: Centered card style */
+#lock-status-modal .modal-content,
+#free-trial-modal .modal-content {
+    background: var(--primary-dark);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    max-height: 90vh;
+}
+
+#lock-status-modal .modal-body,
+#free-trial-modal .modal-body {
+    padding: 1.2rem;
+    overflow-y: auto;
+}
+
+/* Summary cards container */
+.modal-summary-cards {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.modal-summary-cards .summary-card {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 8px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.modal-summary-cards .summary-card .count {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.modal-summary-cards .summary-card .label {
+    font-size: 0.78rem;
+    color: #bdc3c7;
+    margin-top: 2px;
+}
+
+/* Filter/Search bar */
+.modal-filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.modal-filter-bar select,
+.modal-filter-bar input[type="text"],
+.modal-filter-bar button {
+    padding: 8px 12px;
+    background: #2c3e50;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.modal-filter-bar button {
+    background: #3498db;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Table wrapper for horizontal scroll */
+.modal-table-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 55vh;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.modal-table-scroll table {
+    width: 100%;
+    min-width: 550px;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.modal-table-scroll thead tr {
+    border-bottom: 1px solid #444;
+    position: sticky;
+    top: 0;
+    background: #2c3e50;
+    z-index: 1;
+}
+
+.modal-table-scroll th,
+.modal-table-scroll td {
+    padding: 10px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.modal-table-scroll th {
+    text-align: left;
+    font-weight: 600;
+}
+
+/* Mobile — max 768px */
+@media (max-width: 768px) {
+    #lock-status-modal .modal-content,
+    #free-trial-modal .modal-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    #lock-status-modal .modal-body,
+    #free-trial-modal .modal-body {
+        padding: 0.8rem;
+    }
+
+    .modal-summary-cards {
+        gap: 6px;
+    }
+
+    .modal-summary-cards .summary-card {
+        min-width: 0;
+        padding: 10px 4px;
+    }
+
+    .modal-summary-cards .summary-card .count {
+        font-size: 1.4rem;
+    }
+
+    .modal-summary-cards .summary-card .label {
+        font-size: 0.68rem;
+    }
+
+    .modal-filter-bar {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .modal-filter-bar select,
+    .modal-filter-bar input[type="text"],
+    .modal-filter-bar button {
+        width: 100%;
+    }
+
+    .modal-table-scroll {
+        max-height: 60vh;
+        border-radius: 6px;
+    }
+
+    .modal-table-scroll table {
+        min-width: 500px;
+    }
+
+    .modal-table-scroll th,
+    .modal-table-scroll td {
+        padding: 8px 6px;
+        font-size: 0.78rem;
+    }
+}
+
+/* Very small screens — max 400px */
+@media (max-width: 400px) {
+    .modal-summary-cards .summary-card .count {
+        font-size: 1.2rem;
+    }
+
+    .modal-summary-cards .summary-card .label {
+        font-size: 0.62rem;
+    }
+
+    .modal-table-scroll table {
+        min-width: 480px;
+    }
+}
