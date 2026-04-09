@@ -2509,3 +2509,60 @@
         min-width: 480px;
     }
 }
+
+/* Fraud Scanner Mobile Responsive */
+@media (max-width: 600px) {
+    .fraud-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Free Trial Manager - Mobile Card View */
+.ft-card-item {
+    background: #1e1e2e;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+}
+.ft-card-item .ft-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+.ft-card-item .ft-card-row:last-child {
+    margin-bottom: 0;
+}
+.ft-card-item .ft-card-label {
+    color: #7f8c8d;
+    font-size: 0.78rem;
+    min-width: 80px;
+}
+.ft-card-item .ft-card-value {
+    color: #ecf0f1;
+    font-weight: 500;
+    text-align: right;
+    word-break: break-all;
+}
+.ft-card-item .ft-card-email {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #3498db;
+    word-break: break-all;
+    margin-bottom: 8px;
+}
+.ft-card-item .ft-card-uid {
+    font-size: 0.68rem;
+    color: #555;
+    word-break: break-all;
+}
+@media (max-width: 768px) {
+    .ft-desktop-view { display: none !important; }
+    .ft-mobile-view { display: block !important; }
+}
+@media (min-width: 769px) {
+    .ft-desktop-view { display: block !important; }
+    .ft-mobile-view { display: none !important; }
+}

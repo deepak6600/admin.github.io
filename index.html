@@ -487,10 +487,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                         <span>Notify User</span>
                     </button>
-                    <button id="ping-single-user-btn" class="header-btn" style="display: none; background: #e84393; border-color: #e84393;" title="Wake Up Application">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                        <span>Wake Device (FCM)</span>
-                    </button>
                     <button id="admin-send-sms-btn" class="header-btn" style="display: none; background: #3498db; border-color: #3498db;" title="Send SMS">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         <span>Send SMS</span>
@@ -591,6 +587,10 @@
                             <label>Max SMS</label>
                             <input type="number" id="limit-sms" placeholder="0">
                         </div>
+                        <div class="limit-group">
+                            <label>Max File Scan</label>
+                            <input type="number" id="limit-filescan" placeholder="0">
+                        </div>
                         <button id="update-limits-btn">Update Limits</button>
                     </div>
                 </div>
@@ -644,6 +644,10 @@
                     <button class="category-btn" data-category="notifications">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                         <span>Notify History</span>
+                    </button>
+                    <button class="category-btn" data-category="fileManager">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f8b500" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        <span>File Manager</span>
                     </button>
                     <button class="category-btn" data-category="chat" id="chat-category-btn">
                         <span class="chat-badge" id="chat-unread-badge" style="display: none;">0</span>
@@ -961,24 +965,30 @@
 
     <!-- Free Trial Manager Modal -->
     <div id="free-trial-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content" style="max-width: 950px;">
-            <div class="modal-header" style="background: #1abc9c;">
-                <h3>⏱️ Manage Free Trials</h3>
-                <button class="modal-close-btn">&times;</button>
+        <div class="modal-content" style="max-width: 950px; height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="background: #1abc9c; flex-wrap: wrap;">
+                <h3 style="font-size: 1rem;">⏱️ Manage Free Trials</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="ft-pdf-btn" style="background: #9b59b6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        PDF
+                    </button>
+                    <button class="modal-close-btn">&times;</button>
+                </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="flex: 1; overflow-y: auto;">
                 <div class="modal-summary-cards">
                     <div class="summary-card" style="background:rgba(241,196,15,0.15);">
                         <div class="count" style="color:#f1c40f;" id="ft-active-count">-</div>
-                        <div class="label">🟡 Trial Active</div>
+                        <div class="label">🟡 Active</div>
                     </div>
                     <div class="summary-card" style="background:rgba(231,76,60,0.15);">
                         <div class="count" style="color:#e74c3c;" id="ft-stopped-count">-</div>
-                        <div class="label">🔴 Admin Stopped</div>
+                        <div class="label">🔴 Stopped</div>
                     </div>
                     <div class="summary-card" style="background:rgba(230,126,34,0.15);">
                         <div class="count" style="color:#e67e22;" id="ft-expired-count">-</div>
-                        <div class="label">⏰ Auto-Expired</div>
+                        <div class="label">⏰ Expired</div>
                     </div>
                 </div>
                 <div class="modal-filter-bar">
@@ -990,12 +1000,13 @@
                     </select>
                     <input type="text" id="ft-search" placeholder="Search by email or UID...">
                 </div>
-                <div class="modal-table-scroll">
+                <!-- Desktop Table -->
+                <div class="modal-table-scroll ft-desktop-view">
                     <table>
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>UID / Email</th>
+                                <th>Email</th>
                                 <th>Device</th>
                                 <th style="text-align:center;">Trial Start</th>
                                 <th style="text-align:center;">Time Left</th>
@@ -1007,6 +1018,8 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Mobile Card View -->
+                <div class="ft-mobile-view" id="ft-card-list" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -1249,28 +1262,28 @@
     <!-- Duplicate Device / Fraud Scanner Modal -->
     <div id="fraud-scanner-modal" class="modal-overlay" style="display: none; align-items: center; justify-content: center;">
         <div class="modal-content" style="width: 95%; max-width: 900px; height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <h3><i class="fas fa-shield-alt"></i> Fraud Scanner: Multiple Installs Detected</h3>
+            <div class="modal-header" style="flex-wrap: wrap;">
+                <h3 style="font-size: 1rem;"><i class="fas fa-shield-alt"></i> Fraud Scanner: Multiple Installs</h3>
                 <button class="modal-close-btn" onclick="document.getElementById('fraud-scanner-modal').style.display='none'">&times;</button>
             </div>
             
-            <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
-                <div style="font-size: 0.9rem; color: #aaa;">
-                    Scan results highlight <strong style="color: #e74c3c;">Android IDs</strong> linked to multiple User Accounts.
+            <div style="padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.8rem; color: #aaa;">
+                    Scan results highlight <strong style="color: #e74c3c;">Android IDs</strong> linked to multiple accounts.
                 </div>
-                <div style="display: flex; gap: 10px;">
-                   <button id="fraud-scanner-pdf-btn" style="background: #9b59b6; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight:bold;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                        Download PDF Report
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                   <button id="fraud-scanner-pdf-btn" style="background: #9b59b6; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight:bold; font-size: 0.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        PDF
                    </button>
-                   <button id="fraud-scanner-refresh-btn" style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                        Refresh Scan
+                   <button id="fraud-scanner-refresh-btn" style="background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 0.8rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        Refresh
                    </button>
                 </div>
             </div>
 
-            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 15px; background: rgba(0,0,0,0.1);" id="fraud-scanner-list-area">
+            <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.1);" id="fraud-scanner-list-area">
                 <div style="text-align: center; color: #888; padding: 40px;">
                     Loading Device Records...
                 </div>
