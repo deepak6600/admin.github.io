@@ -777,8 +777,13 @@
                 <button class="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p style="color: #bdc3c7; font-size: 0.9rem; margin-bottom: 20px;">Select features to lock/unlock for this user's child device.</p>
+                <p style="color: #bdc3c7; font-size: 0.9rem; margin-bottom: 12px;">Select features to lock/unlock for this user's child device.</p>
                 
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <button id="select-all-locks-btn" onclick="document.querySelectorAll('#manage-locks-modal input[type=checkbox]').forEach(c=>c.checked=true)" style="flex:1; padding: 8px; background: #c0392b; border: none; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">🔒 Select All (Lock)</button>
+                    <button id="deselect-all-locks-btn" onclick="document.querySelectorAll('#manage-locks-modal input[type=checkbox]').forEach(c=>c.checked=false)" style="flex:1; padding: 8px; background: #27ae60; border: none; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem;">🔓 Deselect All (Unlock)</button>
+                </div>
+
                 <div class="lock-features-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <label class="feature-lock-item" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #444;">
                         <input type="checkbox" id="lock-sms" value="sms">
